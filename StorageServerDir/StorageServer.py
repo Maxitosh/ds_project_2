@@ -2,12 +2,12 @@
 import sys, os, time
 from socket import *
 
-block_size = 1024
 from consolemenu import *
 from consolemenu.items import *
 
 ###
 menu = ConsoleMenu()
+block_size = 1024
 
 
 ###
@@ -25,7 +25,7 @@ def generate_menu():
     menu_g = ConsoleMenu("DFS control menu", "Subtitle")
     menu_item = MenuItem("Menu Item", should_exit=True)
     function_item = FunctionItem("Call a Python function", function=print, args=["Enter an input", ])
-    command_item = CommandItem("Run a console command", "touch hello.txt")
+    command_item = CommandItem("Run a console command", "touch data/hello.txt")
     selection_menu = SelectionMenu(["item1", "item2", "item3"], "Select option")
     submenu_item = SubmenuItem("Submenu item", selection_menu, menu_g)
 
@@ -48,7 +48,6 @@ def main():
 
     while True:
         print(menu.selected_item.text)
-        client("namingserver", 8800, "message123")
         menu.show()
 
 

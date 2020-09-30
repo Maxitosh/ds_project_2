@@ -1,4 +1,5 @@
 import socket
+from time import sleep
 
 from Server import Server
 
@@ -7,11 +8,12 @@ block_size = 1024
 
 
 def main():
+    print("123")
     next_user = 1
-    # AF_INET – IPv4, SOCK_STREAM – TCP
+    # # AF_INET – IPv4, SOCK_STREAM – TCP
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # listen to all interfaces at 8800 port
+    # # listen to all interfaces at 8800 port
     sock.bind(('', 8800))
     sock.listen()
     while True:
@@ -23,6 +25,8 @@ def main():
         print(str(addr) + ' connected as ' + name)
         # start new thread to deal with client
         Server(name, con).start()
+
+
 
 
 if __name__ == "__main__":
