@@ -1,4 +1,8 @@
 # Import the necessary packages
+import sys, os, time
+from socket import *
+
+block_size = 1024
 from consolemenu import *
 from consolemenu.items import *
 
@@ -7,6 +11,15 @@ menu = ConsoleMenu()
 
 
 ###
+
+def client(host, port, message):
+    sock = socket(AF_INET, SOCK_STREAM)
+    sock.connect((host, port))
+
+    # send filename
+    sock.send(message.encode())
+    sock.close()
+
 
 def generate_menu():
     menu_g = ConsoleMenu("DFS control menu", "Subtitle")
@@ -35,6 +48,7 @@ def main():
 
     while True:
         print(menu.selected_item.text)
+        client("NamingServer", 8800, "message123")
         menu.show()
 
 
