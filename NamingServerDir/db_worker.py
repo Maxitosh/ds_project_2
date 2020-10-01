@@ -35,17 +35,18 @@ def is_collection_exists(db_name, collection_name):
         return False
 
 
-def init_db(db_name, collections):
-    if not is_db_exists(db_name):
-        db = client[db_name]
-        blank = {"blank": "blank"}
-        for col in collections:
-            db[col].insert_one(blank)
-            print("[DB] Database {} with collection {} created".format(db_name, col))
-            log.info("[DB] Database {} with collection {} created".format(db_name, col))
-    else:
-        print("[DB] Database {0} already exists!".format(db_name))
-        log.info("[DB] Database {0} already exists!".format(db_name))
+def init_db(db_names, collections):
+    for db in db_names:
+        if not is_db_exists(db):
+            db = client[db]
+            blank = {"blank": "blank"}
+            for col in collections:
+                db[col].insert_one(blank)
+                print("[DB] Database {} with collection {} created".format(db, col))
+                log.info("[DB] Database {} with collection {} created".format(db, col))
+        else:
+            print("[DB] Database {0} already exists!".format(db))
+            log.info("[DB] Database {0} already exists!".format(db))
 
 
 def drop_db(db_name):
@@ -108,15 +109,17 @@ def get_items(db_name, collection_name):
     return return_items
 
 
-def get_all_items(db_name):
+def get_db_snapshot(db_names):
     return_items = {}
-    collections = client[db_name].list_collection_names()
-    for col in collections:
-        items = client[db_name][col].find()
-        arr_items = []
-        for item in items:
-            arr_items.append(item)
-        return_items[col] = arr_items
+    for db_name in db_names:
+        return_items[db_name] = {}
+        collections = client[db_name].list_collection_names()
+        for col in collections:
+            items = client[db_name][col].find()
+            arr_items = []
+            for item in items:
+                arr_items.append(item)
+            return_items[db_name][col] = arr_items
 
     print("[DB] {}".format(return_items))
     log.info("[DB] {}".format(return_items))
