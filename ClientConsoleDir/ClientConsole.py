@@ -27,7 +27,7 @@ def generate_menu():
     command_item = CommandItem("Run a console command", "touch hello.txt")
     selection_menu = SelectionMenu(["item1", "item2", "item3"], "Select option")
     submenu_item = SubmenuItem("Submenu item", selection_menu, menu_g)
-    naming_server_info_item = MenuItem("Naming Server info", should_exit=True)
+    naming_server_info_item = MenuItem("Naming Server db snapshot", should_exit=True)
 
     menu_g.append_item(initialize_item)
     menu_g.append_item(create_file_item)

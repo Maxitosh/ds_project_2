@@ -3,6 +3,7 @@ import pickle
 from socket import *
 from bson.json_util import loads
 import logging as log
+
 log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
 host_name = "namingserver"
@@ -17,8 +18,8 @@ class ClientCommands:
             self.initialize_dfs()
         elif command == "Create file":
             self.create_file()
-        elif command == "Naming Server info":
-            self.get_naming_server_info()
+        elif command == "Naming Server db snapshot":
+            self.get_naming_server_db_snapshot()
 
     @staticmethod
     def initialize_dfs():
@@ -27,7 +28,7 @@ class ClientCommands:
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, port))
 
-        message = {"command": "init", "arg1": 123}
+        message = {"command": "init"}
         data = pickle.dumps(message)
         sock.sendall(data)
 
@@ -55,13 +56,13 @@ class ClientCommands:
         sock.close()
 
     @staticmethod
-    def get_naming_server_info():
+    def get_naming_server_db_snapshot():
         print("[CLIENTCOMMANDS] Getting info about NamingServer ...")
         log.info("[CLIENTCOMMANDS] Getting info about NamingServer ...")
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, port))
 
-        message = {"command": "info"}
+        message = {"command": "db_snapshot"}
         data = pickle.dumps(message)
         sock.sendall(data)
 

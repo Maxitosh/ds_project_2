@@ -16,14 +16,14 @@ services:
   mongodb:
     image: mongo:latest
     container_name: mongodb
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: "root"
-      MONGO_INITDB_ROOT_PASSWORD: "1234"
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: "root"
+#      MONGO_INITDB_ROOT_PASSWORD: "1234"
 #      MONGO_INITDB_DATABASE: "DFS"
     ports:
       - 27017:27017
     volumes:
-#      - ./MongoDB/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./MongoDB/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./MongoDB/data:/data/db/
       - ./MongoDB/:/usr/src/app/
 networks:

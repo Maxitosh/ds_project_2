@@ -55,6 +55,13 @@ def drop_db(db_name):
         log.info("[DB] Database {0} dropped".format(db_name))
 
 
+def drop_collection(db_name, collection_name):
+    if is_collection_exists(db_name, collection_name):
+        client[db_name].drop_collection(collection_name)
+        print("[DB] Collection {0} dropped".format(db_name))
+        log.info("[DB] Collection {0} dropped".format(db_name))
+
+
 def insert_item(db_name, collection_name, file_data):
     if is_db_exists(db_name):
         selected_db = client[db_name]
@@ -111,7 +118,8 @@ def get_all_items(db_name):
             arr_items.append(item)
         return_items[col] = arr_items
 
-    print(return_items)
+    print("[DB] {}".format(return_items))
+    log.info("[DB] {}".format(return_items))
     return return_items
 
 
