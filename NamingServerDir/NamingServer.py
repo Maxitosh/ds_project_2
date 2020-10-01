@@ -8,7 +8,6 @@ block_size = 1024
 
 
 def main():
-    print("123")
     next_user = 1
     # # AF_INET – IPv4, SOCK_STREAM – TCP
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

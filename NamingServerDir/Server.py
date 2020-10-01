@@ -2,7 +2,11 @@ import os
 import socket
 from threading import Thread
 
+from NamingServerCommands import NamingServerCommands
+
 block_size = 1024
+
+NSCommands = NamingServerCommands()
 
 
 class Server(Thread):
@@ -21,9 +25,9 @@ class Server(Thread):
         while True:
             # try to read 1024 bytes from user
             # this is blocking call, thread will be paused here
-            data = self.sock.recv(block_size)
+            data = self.sock.recv(block_size).decode("utf-8")
             if data:
-                print(data)
+                NSCommands.dispatch_command(data)
             else:
                 self._close()
                 # finish the thread
