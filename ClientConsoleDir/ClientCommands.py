@@ -1,8 +1,10 @@
 import json
+import pickle
 from socket import *
 
 host_name = "namingserver"
 port = 8800
+block_size = 1024
 
 class ClientCommands:
 
@@ -17,9 +19,12 @@ class ClientCommands:
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, port))
 
-        message = {"command": "init"}
-        data = json.dumps(message)
-        sock.sendall(bytes(data,encoding="utf-8"))
+        message = {"command": "init", "arg1": 123}
+        data = pickle.dumps(message)
+        sock.sendall(data)
+
+        received = pickle.loads(sock.recv(block_size))
+        print(received)
         sock.close()
 
     def create_file(self):

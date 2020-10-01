@@ -1,7 +1,7 @@
 import os
 import socket
 from threading import Thread
-
+import pickle
 from NamingServerCommands import NamingServerCommands
 
 block_size = 1024
@@ -25,9 +25,21 @@ class Server(Thread):
         while True:
             # try to read 1024 bytes from user
             # this is blocking call, thread will be paused here
-            data = self.sock.recv(block_size).decode("utf-8")
+            data = pickle.loads(self.sock.recv(block_size))
+
+            # divide command and args
+            command = {"command": data["command"]}
+            args = {}
+            for key, value in data.items():
+                if key != "command":
+                    args[key] = value
+
             if data:
-                NSCommands.dispatch_command(data)
+                return_data = NSCommands.dispatch_command(command)(args)
+                if return_data != 0:
+                    self.sock.sendall(pickle.dumps(return_data))
+                    self._close()
+                    return
             else:
                 self._close()
                 # finish the thread
