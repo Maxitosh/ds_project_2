@@ -4,18 +4,19 @@ from socket import *
 
 from ClientCommands import ClientCommands
 
-block_size = 1024
 from consolemenu import *
 from consolemenu.items import *
+import logging as log
+
+log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
 ###
 menu = ConsoleMenu()
 client_commander = ClientCommands()
+block_size = 1024
 
 
 ###
-
-
 
 
 def generate_menu():
@@ -45,10 +46,15 @@ def initialization():
 
 
 def main():
+    print("[CLIENT] Begin initialization...")
+    log.info("[CLIENT] Begin initialization...")
     initialization()
-
+    print("[CLIENT] Initialized successfully")
+    log.info("[CLIENT] Initialized successfully")
     while True:
-        print(menu.selected_item.text)
+        print("[CLIENT] Selected menu item: %s" % menu.selected_item.text)
+        log.info("[CLIENT] Selected menu item: %s" % menu.selected_item.text)
+
         client_commander.dispatch_command(menu.selected_item.text)
         menu.show()
 
