@@ -1,2 +1,4 @@
 # Project exclude paths
 /venv/
+/NamingServerDir/dfs.log
+/ClientConsoleDir/dfs.log

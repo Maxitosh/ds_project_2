@@ -1,47 +1,58 @@
 from pymongo import MongoClient
-import json
-import os
-import configparser
 
+import logging as log
+
+log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 client = MongoClient("mongodb://root:1234@mongodb:27017/?authSource=DFS")
-
-
-def test():
-    pass
 
 
 def is_db_exists(db_name):
     db_list = client.list_database_names()
     if db_name in db_list:
-        return 1
+        print("[DB] Database {} exists".format(db_name))
+        log.info("[DB] Database {} exists".format(db_name))
+        return True
     else:
-        return 0
-
-
-def print_dbs():
-    db_list = client.list_database_names()
-    print(db_list)
+        print("[DB] Database {} does not exist".format(db_name))
+        log.info("[DB] Database {} does not exist".format(db_name))
+        return False
 
 
 def is_collection_exists(db_name, collection_name):
     if is_db_exists(db_name):
         collection_list = client[db_name].list_collection_names()
         if collection_name in collection_list:
-            return 1
+            print("[DB] Collection {} exists".format(collection_name))
+            log.info("[DB] Collection {} exists".format(collection_name))
+            return True
         else:
-            return 0
+            print("[DB] Collection {} does not exist".format(collection_name))
+            log.info("[DB] Collection {} does not exist".format(collection_name))
+            return False
+    else:
+        print("[DB] Database {} does not exist".format(db_name))
+        log.info("[DB] Database {} does not exist".format(db_name))
+        return False
 
 
-def create_db(db_name):
+def init_db(db_name, collections):
     if not is_db_exists(db_name):
         db = client[db_name]
-        files = db["Files"]
-        dirs = db["Directories"]
         blank = {"blank": "blank"}
-        files.insert_one(blank)
-        dirs.insert_one(blank)
+        for col in collections:
+            db[col].insert_one(blank)
+            print("[DB] Database {} with collection {} created".format(db_name, col))
+            log.info("[DB] Database {} with collection {} created".format(db_name, col))
     else:
-        print("Database {0} already exists!".format(db_name))
+        print("[DB] Database {0} already exists!".format(db_name))
+        log.info("[DB] Database {0} already exists!".format(db_name))
+
+
+def drop_db(db_name):
+    if is_db_exists(db_name):
+        client.drop_database(db_name)
+        print("[DB] Database {0} dropped".format(db_name))
+        log.info("[DB] Database {0} dropped".format(db_name))
 
 
 def insert_item(db_name, collection_name, file_data):
@@ -103,18 +114,12 @@ def get_all_items(db_name):
     print(return_items)
     return return_items
 
+
 # def get_item(shop_name, collection_name, query):
 #     if is_collection_exists(shop_name, collection_name):
 #         return client[shop_name][collection_name].find(query)
 #     else:
 #         print("DB or Collection does not exist!")
-
-
-# def export_databases():
-#     import datetime
-#     directory = "{0}-{1}-{2}".format(datetime.datetime.now().year, datetime.datetime.now().month,
-#                                      datetime.datetime.now().day)
-#     if not os.path.exists("/usr/local/bin/kznexprbot/DB/{}".format(directory)):
-#         os.makedirs("/usr/local/bin/kznexprbot/DB/{}".format(directory))
-#     cmd = "mongodump -o /usr/local/bin/kznexprbot/DB/{}".format(directory)
-#     os.system(cmd)
+def print_dbs():
+    db_list = client.list_database_names()
+    print(db_list)

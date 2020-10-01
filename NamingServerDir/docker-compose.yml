@@ -25,6 +25,7 @@ services:
     volumes:
 #      - ./MongoDB/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./MongoDB/data:/data/db/
+      - ./MongoDB/:/usr/src/app/
 networks:
   default:
     external:

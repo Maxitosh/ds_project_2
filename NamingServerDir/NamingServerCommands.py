@@ -8,11 +8,11 @@ class NamingServerCommands:
         return getattr(self, 'do_' + command["command"], None)
 
     @staticmethod
-    def do_init(args):
+    def do_init():
         print("Initialization called by client")
         log.info("Initialization called by client")
         if not db.is_db_exists("DFS"):
-            db.create_db("DFS")
+            db.init_db("DFS")
             db.print_dbs()
         else:
             print("Database exists")

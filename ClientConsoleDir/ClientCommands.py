@@ -32,7 +32,8 @@ class ClientCommands:
         sock.sendall(data)
 
         received = pickle.loads(sock.recv(block_size))
-        print(received)
+        print("[CLIENTCOMMANDS] {}".format(received))
+        log.info("[CLIENTCOMMANDS] {}".format(received))
         sock.close()
 
     @staticmethod
@@ -49,8 +50,8 @@ class ClientCommands:
         sock.sendall(data)
 
         received = pickle.loads(sock.recv(block_size))
-        print("[CLIENTCOMMANDS] ", received)
-        log.info("[CLIENTCOMMANDS] ", received)
+        print("[CLIENTCOMMANDS] {}".format(received))
+        log.info("[CLIENTCOMMANDS] {}".format(received))
         sock.close()
 
     @staticmethod
@@ -65,6 +66,6 @@ class ClientCommands:
         sock.sendall(data)
 
         received = pickle.loads(sock.recv(block_size))
-        print("[CLIENTCOMMANDS] ", received)
-        log.info("[CLIENTCOMMANDS] ", received)
+        print("[CLIENTCOMMANDS] {}".format(received))
+        log.info("[CLIENTCOMMANDS] {}".format(received))
         sock.close()
