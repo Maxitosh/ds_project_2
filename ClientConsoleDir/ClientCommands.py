@@ -4,7 +4,8 @@ from socket import *
 from bson.json_util import loads
 import logging as log
 
-log.basicConfig(filename="client.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="client.log", format='[CLIENTCOMMANDS] %(asctime)s - %(levelname)s - %(message)s',
+                level=log.DEBUG)
 
 host_name = "namingserver"
 port = 8800
@@ -33,32 +34,32 @@ class ClientCommands:
         sock.sendall(data)
 
         received = pickle.loads(sock.recv(block_size))
-        print("[CLIENTCOMMANDS] {}".format(received))
-        log.info("[CLIENTCOMMANDS] {}".format(received))
+        print("{}".format(received))
+        log.info("{}".format(received))
         sock.close()
 
     @staticmethod
     def create_file():
-        print("[CLIENTCOMMANDS] Enter file name: ")
-        log.info("[CLIENTCOMMANDS] Enter file name: ")
+        print("Enter file name: ")
+        log.info("Enter file name: ")
         filename = input()
-        log.info("[CLIENTCOMMANDS] file: {}".format(filename))
+        log.info("file: {}".format(filename))
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, port))
 
-        message = {"command": "create_file", "file_name": filename}
+        message = {"command": "create_file", "file_name": filename, "size": 0}
         data = pickle.dumps(message)
         sock.sendall(data)
 
         received = pickle.loads(sock.recv(block_size))
-        print("[CLIENTCOMMANDS] {}".format(received))
-        log.info("[CLIENTCOMMANDS] {}".format(received))
+        print("{}".format(received))
+        log.info("{}".format(received))
         sock.close()
 
     @staticmethod
     def get_naming_server_db_snapshot():
-        print("[CLIENTCOMMANDS] Getting info about NamingServer ...")
-        log.info("[CLIENTCOMMANDS] Getting info about NamingServer ...")
+        print("Getting info about NamingServer ...")
+        log.info("Getting info about NamingServer ...")
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, port))
 
@@ -67,6 +68,6 @@ class ClientCommands:
         sock.sendall(data)
 
         received = pickle.loads(sock.recv(block_size))
-        print("[CLIENTCOMMANDS] {}".format(received))
-        log.info("[CLIENTCOMMANDS] {}".format(received))
+        print("{}".format(received))
+        log.info("{}".format(received))
         sock.close()

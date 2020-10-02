@@ -2,19 +2,19 @@ from pymongo import MongoClient
 
 import logging as log
 
-log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="db.log", format='[DB] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 client = MongoClient("mongodb://root:1234@mongodb:27017/?authSource=DFS")
 
 
 def is_db_exists(db_name):
     db_list = client.list_database_names()
     if db_name in db_list:
-        print("[DB] Database {} exists".format(db_name))
-        log.info("[DB] Database {} exists".format(db_name))
+        print("Database {} exists".format(db_name))
+        log.info("Database {} exists".format(db_name))
         return True
     else:
-        print("[DB] Database {} does not exist".format(db_name))
-        log.info("[DB] Database {} does not exist".format(db_name))
+        print("Database {} does not exist".format(db_name))
+        log.error("Database {} does not exist".format(db_name))
         return False
 
 
@@ -22,16 +22,16 @@ def is_collection_exists(db_name, collection_name):
     if is_db_exists(db_name):
         collection_list = client[db_name].list_collection_names()
         if collection_name in collection_list:
-            print("[DB] Collection {} exists".format(collection_name))
-            log.info("[DB] Collection {} exists".format(collection_name))
+            print("Collection {} exists".format(collection_name))
+            log.info("Collection {} exists".format(collection_name))
             return True
         else:
-            print("[DB] Collection {} does not exist".format(collection_name))
-            log.info("[DB] Collection {} does not exist".format(collection_name))
+            print("Collection {} does not exist".format(collection_name))
+            log.error("Collection {} does not exist".format(collection_name))
             return False
     else:
-        print("[DB] Database {} does not exist".format(db_name))
-        log.info("[DB] Database {} does not exist".format(db_name))
+        print("Database {} does not exist".format(db_name))
+        log.error("Database {} does not exist".format(db_name))
         return False
 
 
@@ -42,25 +42,33 @@ def init_db(db_names, collections):
             blank = {"blank": "blank"}
             for col in collections:
                 db[col].insert_one(blank)
-                print("[DB] Database {} with collection {} created".format(db, col))
-                log.info("[DB] Database {} with collection {} created".format(db, col))
+                print("Database {} with collection {} created".format(db, col))
+                log.info("Database {} with collection {} created".format(db, col))
         else:
-            print("[DB] Database {0} already exists!".format(db))
-            log.info("[DB] Database {0} already exists!".format(db))
+            print("Database {0} already exists!".format(db))
+            log.error("Database {0} already exists!".format(db))
 
+
+def init_collection(db_name, collections):
+    if is_db_exists(db_name):
+        blank = {"blank": "blank"}
+        for col in collections:
+            client[db_name][col].insert_one(blank)
+            print("Collection {} for database {} created".format(col, db_name))
+            log.info("Collection {} for database {} created".format(col, db_name))
 
 def drop_db(db_name):
     if is_db_exists(db_name):
         client.drop_database(db_name)
-        print("[DB] Database {0} dropped".format(db_name))
-        log.info("[DB] Database {0} dropped".format(db_name))
+        print("Database {0} dropped".format(db_name))
+        log.info("Database {0} dropped".format(db_name))
 
 
 def drop_collection(db_name, collection_name):
     if is_collection_exists(db_name, collection_name):
         client[db_name].drop_collection(collection_name)
-        print("[DB] Collection {0} dropped".format(db_name))
-        log.info("[DB] Collection {0} dropped".format(db_name))
+        print("Collection {0} dropped".format(db_name))
+        log.info("Collection {0} dropped".format(db_name))
 
 
 def insert_item(db_name, collection_name, file_data):
@@ -70,10 +78,13 @@ def insert_item(db_name, collection_name, file_data):
             collection = selected_db[collection_name]
             collection.insert_one(file_data)
             print("Inserted file {}, in collection {}".format(file_data, collection_name))
+            log.info("Inserted file {}, in collection {}".format(file_data, collection_name))
         else:
             print("Collection {0} for DB {1} does not exist!".format(collection_name, db_name))
+            log.error("Collection {0} for DB {1} does not exist!".format(collection_name, db_name))
     else:
-        print("Database does not exist!")
+        print("Database {} does not exist!".format(db_name))
+        log.error("Database {} does not exist!".format(db_name))
 
 
 # def update_item(shop_name, collection_name, query, new_product_data):
