@@ -6,7 +6,7 @@ import pickle
 from NamingServerCommands import NamingServerCommands
 import logging as log
 
-log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="dfs.log", format='[NS] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
 block_size = 1024
 NSCommands = NamingServerCommands()
@@ -23,8 +23,8 @@ class Server(Thread):
     # clean up
     def _close(self):
         self.sock.close()
-        print("[NS] " + self.name + ' disconnected')
-        log.info("[NS] " + self.name + ' disconnected')
+        print(self.name + ' disconnected')
+        log.info(self.name + ' disconnected')
 
     def run(self):
         while True:
@@ -53,8 +53,8 @@ class Server(Thread):
 
 
 def main():
-    print("[NS] NamingServer starting...")
-    log.info("[NS] NamingServer starting...")
+    print("NamingServer starting...")
+    log.info("NamingServer starting...")
     next_user = 1
     # # AF_INET – IPv4, SOCK_STREAM – TCP
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -62,16 +62,16 @@ def main():
     # # listen to all interfaces at 8800 port
     sock.bind(('', 8800))
     sock.listen()
-    print("[NS] NamingServer waiting for connections...")
-    log.info("[NS] NamingServer waiting for connections...")
+    print("NamingServer waiting for connections...")
+    log.info("NamingServer waiting for connections...")
     while True:
         # blocking call, waiting for new client to connect
         con, addr = sock.accept()
         clients.append(con)
-        name = 'user#' + str(next_user)
+        name = 'connection#' + str(next_user)
         next_user += 1
-        print("[NS]" + str(addr) + ' connected as ' + name)
-        log.info("[NS]" + str(addr) + ' connected as ' + name)
+        print(str(addr) + ' connected as ' + name)
+        log.info(str(addr) + ' connected as ' + name)
 
         # start new thread to deal with client
         Server(name, con).start()

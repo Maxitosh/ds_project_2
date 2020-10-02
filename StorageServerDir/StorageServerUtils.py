@@ -4,12 +4,15 @@ from socket import *
 
 import logging as log
 
-log.basicConfig(filename="ss.log", format='[SSU] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+
 
 dir = "/usr/src/app/data/"
 
 
 class StorageServerUtils:
+
+    def __init__(self):
+        log.basicConfig(filename="ss.log", format='[SSU] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
     def mkdir(self, dir_name):
         os.system("mkdir {}".format(dir_name))

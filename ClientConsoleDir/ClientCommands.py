@@ -41,7 +41,6 @@ class ClientCommands:
     @staticmethod
     def create_file():
         print("Enter file name: ")
-        log.info("Enter file name: ")
         filename = input()
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, port))

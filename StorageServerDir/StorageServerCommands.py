@@ -3,15 +3,17 @@ import os
 import shutil
 from StorageServerUtils import StorageServerUtils
 
-host_name = os.getenv('HOSTNAME').upper()
-log.basicConfig(filename="ss.log", format='[%s] ' % host_name + '%(asctime)s - %(levelname)s - %(message)s',
-                level=log.DEBUG)
-
 dir = "/usr/src/app/data/"
 SSUtils = StorageServerUtils()
 
 
 class StorageServerCommands:
+
+    def __init__(self):
+        host_name = os.getenv('HOSTNAME').upper()
+        log.basicConfig(filename="ss.log",
+                        format=('[{}] '.format(host_name) + '%(asctime)s - %(levelname)s - %(message)s'),
+                        level=log.DEBUG)
 
     def dispatch_command(self, command):
         return getattr(self, 'do_' + command["command"], None)
@@ -39,7 +41,6 @@ class StorageServerCommands:
         directories = SSUtils.extract_dirs_from_filename(args['file_name'])
         for directory in directories:
             SSUtils.mkdir(directory)
-
 
         # create empty file
         SSUtils.create_empty_file(args['file_name'])

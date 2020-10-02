@@ -9,9 +9,8 @@ from StorageServerCommands import StorageServerCommands
 import pickle
 import logging as log
 
-log.basicConfig(filename="ss.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
-host_name = ""
+
 block_size = 1024
 clients = []
 SSCommands = StorageServerCommands()
@@ -27,8 +26,8 @@ class Server(Thread):
     # clean up
     def _close(self):
         self.sock.close()
-        print("[%s] " % host_name + self.name + ' disconnected')
-        log.info("[%s] " % host_name + self.name + ' disconnected')
+        print(self.name + ' disconnected')
+        log.info(self.name + ' disconnected')
 
     def run(self):
         while True:
@@ -56,28 +55,28 @@ class Server(Thread):
             return
 
 
-
 def main():
-    global host_name
     host_name = os.getenv('HOSTNAME').upper()
-    print("[%s] starting..." % host_name)
-    log.info("[%s] starting..." % host_name)
+    log.basicConfig(filename="ss1.log", format=("[{}] ".format(host_name) + '%(asctime)s - %(levelname)s - %(message)s'),
+                    level=log.DEBUG)
+    print("starting...")
+    log.info("starting...")
 
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     next_user = 1
     sock.bind(('', 8800))
     sock.listen()
-    print("[%s] waiting for connections..." % host_name)
-    log.info("[%s] waiting for connections..." % host_name)
+    print("waiting for connections...")
+    log.info("waiting for connections...")
     while True:
         # blocking call, waiting for new client to connect
         con, addr = sock.accept()
         clients.append(con)
-        name = 'user#' + str(next_user)
+        name = 'connection#' + str(next_user)
         next_user += 1
-        print("[%s]" % host_name + str(addr) + ' connected as ' + name)
-        log.info("[%s]" % host_name + str(addr) + ' connected as ' + name)
+        print(str(addr) + ' connected as ' + name)
+        log.info(str(addr) + ' connected as ' + name)
 
         # start new thread to deal with client
         Server(name, con).start()

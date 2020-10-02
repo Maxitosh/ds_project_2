@@ -6,7 +6,7 @@ import db_worker as db
 import logging as log
 from NamingServerUtils import NamingServerUtils
 
-log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="dfs.log", format='[NSC] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
 # TODO move it to some config file
 naming_server_db = ["DFS"]

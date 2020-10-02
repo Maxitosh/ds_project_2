@@ -9,12 +9,8 @@ client = MongoClient("mongodb://root:1234@mongodb:27017/?authSource=DFS")
 def is_db_exists(db_name):
     db_list = client.list_database_names()
     if db_name in db_list:
-        print("Database {} exists".format(db_name))
-        log.info("Database {} exists".format(db_name))
         return True
     else:
-        print("Database {} does not exist".format(db_name))
-        log.error("Database {} does not exist".format(db_name))
         return False
 
 
@@ -22,16 +18,10 @@ def is_collection_exists(db_name, collection_name):
     if is_db_exists(db_name):
         collection_list = client[db_name].list_collection_names()
         if collection_name in collection_list:
-            print("Collection {} exists".format(collection_name))
-            log.info("Collection {} exists".format(collection_name))
             return True
         else:
-            print("Collection {} does not exist".format(collection_name))
-            log.error("Collection {} does not exist".format(collection_name))
             return False
     else:
-        print("Database {} does not exist".format(db_name))
-        log.error("Database {} does not exist".format(db_name))
         return False
 
 
@@ -44,9 +34,6 @@ def init_db(db_names, collections):
                 db[col].insert_one(blank)
                 print("Database {} with collection {} created".format(db, col))
                 log.info("Database {} with collection {} created".format(db, col))
-        else:
-            print("Database {0} already exists!".format(db))
-            log.error("Database {0} already exists!".format(db))
 
 
 def init_collection(db_name, collections):
