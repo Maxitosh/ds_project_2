@@ -43,7 +43,6 @@ class ClientCommands:
         print("Enter file name: ")
         log.info("Enter file name: ")
         filename = input()
-        log.info("file: {}".format(filename))
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, port))
 

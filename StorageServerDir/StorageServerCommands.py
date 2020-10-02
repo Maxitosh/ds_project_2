@@ -1,12 +1,14 @@
 import logging as log
 import os
 import shutil
+from StorageServerUtils import StorageServerUtils
 
 host_name = os.getenv('HOSTNAME').upper()
 log.basicConfig(filename="ss.log", format='[%s] ' % host_name + '%(asctime)s - %(levelname)s - %(message)s',
                 level=log.DEBUG)
 
 dir = "/usr/src/app/data/"
+SSUtils = StorageServerUtils()
 
 
 class StorageServerCommands:
@@ -33,13 +35,19 @@ class StorageServerCommands:
         print("File creation called by client")
         log.info("File creation called by client")
 
-        directories_to_create = ""
-        for directory in args["file_name"].split('/')[0:len(args["file_name"].split('/'))-1]:
-            directories_to_create += directory + "/"
-            os.system("mkdir {}".format(dir+directories_to_create))
+        # create directories for new file
+        directories = SSUtils.extract_dirs_from_filename(args['file_name'])
+        for directory in directories:
+            SSUtils.mkdir(directory)
 
 
-        os.system("touch {}".format(dir + args["file_name"]))
+        # create empty file
+        SSUtils.create_empty_file(args['file_name'])
+
+        # this function will be called on another SS, so it should not replicate anymore
+        if len(args['replicas']) != 0:
+            # send replicas to other SS
+            SSUtils.send_replicas_of_empty_file_to_ss(args['file_name'], args['replicas'])
 
         print("File {} created".format(args["file_name"]))
         log.info("File {} created".format(args["file_name"]))
