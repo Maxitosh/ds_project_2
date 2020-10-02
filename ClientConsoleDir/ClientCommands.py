@@ -4,7 +4,7 @@ from socket import *
 from bson.json_util import loads
 import logging as log
 
-log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="client.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
 host_name = "namingserver"
 port = 8800

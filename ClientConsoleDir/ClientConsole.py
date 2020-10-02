@@ -8,7 +8,7 @@ from consolemenu import *
 from consolemenu.items import *
 import logging as log
 
-log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="client.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
 ###
 menu = ConsoleMenu()

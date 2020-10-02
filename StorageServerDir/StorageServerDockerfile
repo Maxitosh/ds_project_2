@@ -2,7 +2,7 @@ FROM alpine
 
 RUN apk add --update py3-pip
 RUN apk add --no-cache gcc musl-dev linux-headers
-COPY StorageServer.py /usr/src/app/
-COPY requirements.txt /usr/src/app/
-WORKDIR /usr/src/app/
-RUN pip install --no-cache-dir -r /usr/src/app/requirements.txt
+COPY StorageServer.py /usr/src/app/src/
+COPY requirements.txt /usr/src/app/src/
+WORKDIR /usr/src/app/src/
+RUN pip install --no-cache-dir -r /usr/src/app/src/requirements.txt

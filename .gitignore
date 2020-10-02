@@ -2,3 +2,6 @@
 /venv/
 /NamingServerDir/dfs.log
 /ClientConsoleDir/dfs.log
+/StorageServerDir/SS1/
+/StorageServerDir/SS2/
+/StorageServerDir/SS3/
