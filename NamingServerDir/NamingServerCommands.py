@@ -4,6 +4,7 @@ from socket import *
 
 import db_worker as db
 import logging as log
+from NamingServerUtils import NamingServerUtils
 
 log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
@@ -12,6 +13,8 @@ naming_server_db = ["DFS"]
 storage_servers_db = ["SS1", "SS2", "SS3"]
 storage_size = 800000000  # 100mgbytes
 block_size = 1024
+
+NSUtils = NamingServerUtils()
 
 
 class NamingServerCommands:
@@ -52,20 +55,34 @@ class NamingServerCommands:
 
     @staticmethod
     def do_create_file(args):
-        print("Creation of file {}".format(args["file_name"]))
+        print("Creation of file {}".format(NSUtils.get_full_path(args["file_name"])))
+
+        # check if file exists
+        if NSUtils.is_file_exists((NSUtils.get_full_path(args['file_name']))):
+            return {"status": "File exists"}
 
         # update main file system
-        db.insert_item("DFS", "Files", args)
+        NSUtils.insert_file_into_db("DFS", args)
+        # update dirs of file system
+        NSUtils.insert_dirs_into_db("DFS", args['file_name'])
+
+
 
         # TODO check alive SS, for now pick random
         # choose alive SS
-        picked_ss = random.randint(0, 2)
+        picked_ss = random.randint(0, len(storage_servers_db) - 1)
 
-        sock = socket(AF_INET, SOCK_STREAM)
-        sock.connect((storage_servers_db[picked_ss], 8800))
-        message = {"command": "create_file", "file_name": args["file_name"]}
-        data = pickle.dumps(message)
-        sock.sendall(data)
+        for i in range(len(storage_servers_db)):
+            # update ss file system
+            NSUtils.insert_file_into_db(storage_servers_db[i], args)
+            # update ss dirs
+            NSUtils.insert_dirs_into_db(storage_servers_db[i], args['file_name'])
+
+        # get list of ss to get replicas
+        ss_replicas_list = NSUtils.get_ss_for_replicas(storage_servers_db[picked_ss], storage_servers_db)
+
+        message = {"command": "create_file", "file_name": args["file_name"], "replicas": ss_replicas_list}
+        NSUtils.send_message_to_ss(storage_servers_db[picked_ss], message)
 
         return {"status": "OK"}
 

@@ -51,7 +51,12 @@ class ClientCommands:
         data = pickle.dumps(message)
         sock.sendall(data)
 
-        received = pickle.loads(sock.recv(block_size))
+        data = b""
+        while True:
+            packet = sock.recv(block_size)
+            if not packet: break
+            data += packet
+        received = pickle.loads(data)
         print("{}".format(received))
         log.info("{}".format(received))
         sock.close()
@@ -67,7 +72,12 @@ class ClientCommands:
         data = pickle.dumps(message)
         sock.sendall(data)
 
-        received = pickle.loads(sock.recv(block_size))
+        data = b""
+        while True:
+            packet = sock.recv(block_size)
+            if not packet: break
+            data += packet
+        received = pickle.loads(data)
         print("{}".format(received))
         log.info("{}".format(received))
         sock.close()

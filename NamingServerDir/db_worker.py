@@ -57,6 +57,7 @@ def init_collection(db_name, collections):
             print("Collection {} for database {} created".format(col, db_name))
             log.info("Collection {} for database {} created".format(col, db_name))
 
+
 def drop_db(db_name):
     if is_db_exists(db_name):
         client.drop_database(db_name)
@@ -71,14 +72,14 @@ def drop_collection(db_name, collection_name):
         log.info("Collection {0} dropped".format(db_name))
 
 
-def insert_item(db_name, collection_name, file_data):
+def insert_item(db_name, collection_name, item_data):
     if is_db_exists(db_name):
         selected_db = client[db_name]
         if is_collection_exists(db_name, collection_name):
             collection = selected_db[collection_name]
-            collection.insert_one(file_data)
-            print("Inserted file {}, in collection {}".format(file_data, collection_name))
-            log.info("Inserted file {}, in collection {}".format(file_data, collection_name))
+            collection.insert_one(item_data)
+            print("Inserted file {}, in collection {}".format(item_data, collection_name))
+            log.info("Inserted file {}, in collection {}".format(item_data, collection_name))
         else:
             print("Collection {0} for DB {1} does not exist!".format(collection_name, db_name))
             log.error("Collection {0} for DB {1} does not exist!".format(collection_name, db_name))
@@ -94,14 +95,13 @@ def insert_item(db_name, collection_name, file_data):
 #         print("DB or Collection does not exist!")
 
 
-# def is_item_exists(shop_name, collection_name, query):
-#     if is_collection_exists(shop_name, collection_name):
-#         item = 0
-#         item = client[shop_name][collection_name].find(query)
-#         if item.count():
-#             return True
-#         else:
-#             return False
+def is_item_exists(db_name, collection_name, query):
+    if is_collection_exists(db_name, collection_name):
+        item = client[db_name][collection_name].find(query)
+        if item.count():
+            return True
+        else:
+            return False
 
 
 # def get_distinct_items(shop_name, collection_name, field):
@@ -132,8 +132,8 @@ def get_db_snapshot(db_names):
                 arr_items.append(item)
             return_items[db_name][col] = arr_items
 
-    print("[DB] {}".format(return_items))
-    log.info("[DB] {}".format(return_items))
+    print("{}".format(return_items))
+    log.info("{}".format(return_items))
     return return_items
 
 
