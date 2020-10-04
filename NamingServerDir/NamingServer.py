@@ -45,16 +45,11 @@ class Server(Thread):
                 if key != "command":
                     args[key] = value
 
-            if data:
-                return_data = NSCommands.dispatch_command(command)(args) if len(
-                    args.items()) > 0 else NSCommands.dispatch_command(command)()
-                if return_data != 0:
-                    self.sock.sendall(pickle.dumps(return_data))
-                    self._close()
-                    return
-            else:
+            return_data = NSCommands.dispatch_command(command)(args) if len(
+                args.items()) > 0 else NSCommands.dispatch_command(command)()
+            if return_data != 0:
+                self.sock.sendall(pickle.dumps(return_data))
                 self._close()
-                # finish the thread
                 return
 
 

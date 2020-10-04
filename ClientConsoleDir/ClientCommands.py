@@ -3,16 +3,17 @@ import pickle
 from socket import *
 from bson.json_util import loads
 import logging as log
-from ClientUtils import CLientUtils
+from ClientUtils import ClientUtils
 
 log.basicConfig(filename="client.log", format='[CCM] %(asctime)s - %(levelname)s - %(message)s',
                 level=log.DEBUG, force=True)
 
-host_name = "namingserver"
+ns_host = "namingserver"
 port = 8800
 block_size = 1024
 
-CUtils = CLientUtils()
+CUtils = ClientUtils()
+
 
 class ClientCommands:
 
@@ -31,7 +32,7 @@ class ClientCommands:
         print("Starting initialization of DFS")
         log.info("Starting initialization of DFS")
         sock = socket(AF_INET, SOCK_STREAM)
-        sock.connect((host_name, port))
+        sock.connect((ns_host, port))
 
         message = {"command": "init"}
         data = pickle.dumps(message)
@@ -47,7 +48,7 @@ class ClientCommands:
         print("Enter file name: ")
         filename = input()
         sock = socket(AF_INET, SOCK_STREAM)
-        sock.connect((host_name, port))
+        sock.connect((ns_host, port))
 
         message = {"command": "create_file", "file_name": filename, "size": 0}
         data = pickle.dumps(message)
@@ -71,14 +72,18 @@ class ClientCommands:
         # get size of file
         file_size = CUtils.get_file_size_in_bits(file_name)
 
+        # generate message for NS
+        message = {'command': 'create_file', 'file_name': dfs_file_name, 'size': file_size}
+        response_code = CUtils.send_message(ns_host, message)
 
+        print(response_code)
 
     @staticmethod
     def get_naming_server_db_snapshot():
         print("Getting info about NamingServer ...")
         log.info("Getting info about NamingServer ...")
         sock = socket(AF_INET, SOCK_STREAM)
-        sock.connect((host_name, port))
+        sock.connect((ns_host, port))
 
         message = {"command": "db_snapshot"}
         data = pickle.dumps(message)

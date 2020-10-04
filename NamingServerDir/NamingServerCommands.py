@@ -57,6 +57,7 @@ class NamingServerCommands:
     @staticmethod
     def do_create_file(args):
         print("Creation of file {}".format(NSUtils.get_full_path(args["file_name"])))
+        log.info("Creation of file {}".format(NSUtils.get_full_path(args["file_name"])))
 
         # check if file exists
         if NSUtils.is_file_exists((NSUtils.get_full_path(args['file_name']))):
@@ -71,6 +72,7 @@ class NamingServerCommands:
         # choose alive SS
         picked_ss = random.randint(0, len(storage_servers_db) - 1)
 
+        # TODO check if SS is alive to write its DB
         for i in range(len(storage_servers_db)):
             # update ss file system
             NSUtils.insert_file_into_db(storage_servers_db[i], args)
@@ -86,12 +88,56 @@ class NamingServerCommands:
         return {"status": "OK"}
 
     @staticmethod
+    def do_write_file(args):
+        print("Write file {}".format(NSUtils.get_full_path(args["file_name"])))
+        log.info("Write file {}".format(NSUtils.get_full_path(args["file_name"])))
+
+        # check if file exists
+        # TODO save copy of file
+        if NSUtils.is_file_exists(NSUtils.get_full_path(args['file_name'])):
+            return {'status': 'File exists'}
+
+        # get alive nodes
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+
+        # get alive fit nodes
+        alive_fit_nodes = NSUtils.get_fit_nodes(alive_nodes, args['size'])
+
+        # check if file does not fit
+        if len(alive_fit_nodes) == 0:
+            return {'status': 'NotEnoughSpace'}
+
+        # update main file system
+        NSUtils.insert_file_into_db("DFS", args)
+        # update dirs of file system
+        NSUtils.insert_dirs_into_db("DFS", args['file_name'])
+
+        # update ss file system
+        for ss in alive_fit_nodes:
+            NSUtils.insert_file_into_db(ss, args)
+            # update dirs of file system
+            NSUtils.insert_dirs_into_db(ss, args['file_name'])
+
+        # choose any alive fit ss node
+        picked_ss = storage_servers_db[random.randint(0, len(storage_servers_db) - 1)]
+
+        # get list of ss to get replicas
+        ss_replicas_list = NSUtils.get_ss_for_replicas(picked_ss, alive_fit_nodes)
+
+        # generate message for client
+        message = {"status": "OK", "ss": picked_ss, "replicas": ss_replicas_list}
+
+        return message
+
+
+    @staticmethod
     def do_db_snapshot():
         print("Gathering info about NamingServer")
         log.info("Gathering info about NamingServer")
         return db.get_db_snapshot(naming_server_db + storage_servers_db)
 
-    def do_heart_signal(self, args):
+    @staticmethod
+    def do_heart_signal(args):
         print("Got heartbeat from {}".format(args['ss']))
         log.info("Got heartbeat from {}".format(args['ss']))
         db.update_ss_life_status(args['ss'])

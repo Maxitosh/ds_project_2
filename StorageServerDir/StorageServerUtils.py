@@ -56,7 +56,7 @@ class StorageServerUtils:
         heart_beat_thread.start()
 
     def send_heart_signal(self, name_server_hostname):
-        ss_host_name = os.getenv('HOSTNAME')
+        ss_host_name = os.getenv('HOSTNAME').upper()
         # generate message
         message = {"command": "heart_signal", "ss": ss_host_name}
 

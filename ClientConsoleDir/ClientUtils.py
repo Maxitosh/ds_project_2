@@ -1,8 +1,12 @@
 import logging as log
 import os
+import pickle
+from socket import *
 
 log.basicConfig(filename="client.log", format='[CU] %(asctime)s - %(levelname)s - %(message)s',
                 level=log.DEBUG, force=True)
+
+block_size = 1024
 
 
 class ClientUtils:
@@ -24,3 +28,17 @@ class ClientUtils:
         except Exception as e:
             print(e)
             log.error(e)
+
+    def send_message(self, host_name, message):
+        sock = socket(AF_INET, SOCK_STREAM)
+        sock.connect((host_name, 8800))
+        data = pickle.dumps(message)
+        sock.sendall(data)
+
+        data = b""
+        while True:
+            packet = sock.recv(block_size)
+            if not packet: break
+            data += packet
+        received = pickle.loads(data)
+        return received

@@ -1,11 +1,13 @@
 import pickle
+from datetime import datetime
 from socket import *
 
 import db_worker as db
 import logging as log
 
 dir = "/usr/src/app/data/"
-log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSU] %(message)s', level=log.DEBUG, force=True)
+log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSU] %(message)s', level=log.DEBUG,
+                force=True)
 
 
 class NamingServerUtils:
@@ -60,8 +62,20 @@ class NamingServerUtils:
                 ss_to_replicas.append(ss)
         return ss_to_replicas
 
+    def get_alive_ss(self, ss_list):
+        alive_nodes = []
+        for ss in ss_list:
+            if datetime.now() - db.ss_life[ss] < 60:
+                print("Node {} is alive".format(ss))
+                alive_nodes.append(ss)
 
-    def update_ss_life_status(self, ss_name):
-        db.ss_life[ss_name] = 30
+        return alive_nodes
 
 
+    def get_fit_nodes(self, ss_list, file_size):
+        fit_nodes = []
+        for ss in ss_list:
+            if (int(db['DFS']['Storages'][ss]) - file_size) >= 0:
+                fit_nodes.append(ss)
+
+        return fit_nodes
