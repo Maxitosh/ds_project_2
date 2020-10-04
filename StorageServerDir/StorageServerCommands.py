@@ -1,3 +1,4 @@
+import base64
 import logging as log
 import os
 import shutil
@@ -30,7 +31,7 @@ class StorageServerCommands:
 
         print("Initialization completed, all files removed")
         log.info("Initialization completed, all files removed")
-        return 0  # {"status": "OK", "size": 1}
+        return {"status": "OK"}
 
     @staticmethod
     def do_create_file(args):
@@ -52,4 +53,29 @@ class StorageServerCommands:
 
         print("File {} created".format(args["file_name"]))
         log.info("File {} created".format(args["file_name"]))
-        return 0  # {"status": "OK", "size": 1}
+        return {"status": "OK", "size": 0}
+
+    @staticmethod
+    def do_write_file(args):
+        print("File writing called by client")
+        log.info("File writing called by client")
+
+        # create directories for new file
+        directories = SSUtils.extract_dirs_from_filename(args['file_name'])
+        for directory in directories:
+            SSUtils.mkdir(directory)
+
+        file = open(dir + args['file_name'], 'wb')
+        for s in args['data']:
+            print(base64.b64decode(s))
+            file.write(base64.b64decode(s))
+        file.close()
+
+        # this function will be called on another SS, so it should not replicate anymore
+        if len(args['replicas']) != 0:
+            # send replicas to other SS
+            SSUtils.send_replicas_to_ss(args['file_name'], args['data'], args['size'], args['replicas'])
+
+        print("File {} created".format(args["file_name"]))
+        log.info("File {} created".format(args["file_name"]))
+        return {"status": "OK", "size": args['size']}

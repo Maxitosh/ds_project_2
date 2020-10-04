@@ -41,4 +41,5 @@ class ClientUtils:
             if not packet: break
             data += packet
         received = pickle.loads(data)
+        sock.close()
         return received

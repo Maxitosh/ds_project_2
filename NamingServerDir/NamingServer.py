@@ -31,11 +31,13 @@ class Server(Thread):
         while True:
             # try to read 1024 bytes from user
             # this is blocking call, thread will be paused here
-            received = self.sock.recv(block_size)
-            # while True:
-            #     packet = self.sock.recv(block_size)
-            #     if not packet: break
-            #     received += packet
+            received = b""
+            data = self.sock.recv(block_size)
+            received += data
+            while data:
+                if len(data) < block_size: break
+                data = self.sock.recv(block_size)
+                received += data
             data = pickle.loads(received)
 
             # divide command and args

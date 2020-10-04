@@ -1,6 +1,7 @@
 import pickle
 from datetime import datetime
 from socket import *
+from time import sleep
 
 import db_worker as db
 import logging as log
@@ -8,6 +9,8 @@ import logging as log
 dir = "/usr/src/app/data/"
 log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSU] %(message)s', level=log.DEBUG,
                 force=True)
+
+block_size = 1024
 
 
 class NamingServerUtils:
@@ -65,9 +68,12 @@ class NamingServerUtils:
     def get_alive_ss(self, ss_list):
         alive_nodes = []
         for ss in ss_list:
-            if (datetime.now() - db.ss_life[ss]).seconds < 60:
-                print("Node {} is alive".format(ss))
-                alive_nodes.append(ss)
+            try:
+                if (datetime.now() - db.ss_life[ss]).seconds < 60:
+                    print("Node {} is alive".format(ss))
+                    alive_nodes.append(ss)
+            except:
+                pass
 
         return alive_nodes
 
@@ -100,3 +106,19 @@ class NamingServerUtils:
                            {'storage_size': (storage_size - file_size)})
             print("Updated storage size of {} from {} to {}".format(ss, storage_size, storage_size - file_size))
             log.info("Updated storage size of {} from {} to {}".format(ss, storage_size, storage_size - file_size))
+
+    def send_message(self, host_name, message):
+        sock = socket(AF_INET, SOCK_STREAM)
+        sock.connect((host_name, 8800))
+        data = pickle.dumps(message)
+        sock.sendall(data)
+        # print('123')
+
+        rec = b""
+        while True:
+            packet = sock.recv(block_size)
+            if not packet: break
+            rec += packet
+        received = pickle.loads(rec)
+        sock.close()
+        return received

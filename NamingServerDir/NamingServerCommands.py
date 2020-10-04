@@ -39,18 +39,14 @@ class NamingServerCommands:
         for ss in storage_servers_db:
             db.insert_item("DFS", "Storages", {'storage_name': ss, 'storage_size': storage_size})
 
-        # remove data from SS
-        for ss in storage_servers_db:
-            sock = socket(AF_INET, SOCK_STREAM)
-            sock.connect((ss, 8800))
-            message = {"command": "init"}
-            data = pickle.dumps(message)
-            sock.sendall(data)
+        # get list of alive nodes
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
 
-            # received = pickle.loads(sock.recv(block_size))
-            # print("[CLIENTCOMMANDS] {}".format(received))
-            # log.info("[CLIENTCOMMANDS] {}".format(received))
-            sock.close()
+        # remove data from SS
+        for ss in alive_nodes:
+            message = {"command": "init"}
+            response = NSUtils.send_message(ss, message)
+            log.info("Init response of {}: {}".format(ss, response))
 
         return {"status": "OK", "size_bits": storage_size}
 
@@ -83,7 +79,7 @@ class NamingServerCommands:
         ss_replicas_list = NSUtils.get_ss_for_replicas(storage_servers_db[picked_ss], storage_servers_db)
 
         message = {"command": "create_file", "file_name": args["file_name"], "replicas": ss_replicas_list}
-        NSUtils.send_message_to_ss(storage_servers_db[picked_ss], message)
+        NSUtils.send_message(storage_servers_db[picked_ss], message)
 
         return {"status": "OK"}
 
@@ -131,7 +127,6 @@ class NamingServerCommands:
         message = {"status": "OK", "ss": picked_ss, "replicas": ss_replicas_list}
 
         return message
-
 
     @staticmethod
     def do_db_snapshot():

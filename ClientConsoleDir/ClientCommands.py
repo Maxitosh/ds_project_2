@@ -1,6 +1,8 @@
 import json
+import os
 import pickle
 from socket import *
+import base64
 from bson.json_util import loads
 import logging as log
 from ClientUtils import ClientUtils
@@ -13,6 +15,28 @@ port = 8800
 block_size = 1024
 
 CUtils = ClientUtils()
+
+
+def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd="\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
+    # Print New Line on Complete
+    if iteration == total:
+        print()
 
 
 class ClientCommands:
@@ -31,38 +55,21 @@ class ClientCommands:
     def initialize_dfs():
         print("Starting initialization of DFS")
         log.info("Starting initialization of DFS")
-        sock = socket(AF_INET, SOCK_STREAM)
-        sock.connect((ns_host, port))
 
         message = {"command": "init"}
-        data = pickle.dumps(message)
-        sock.sendall(data)
-
-        received = pickle.loads(sock.recv(block_size))
+        received = CUtils.send_message(ns_host, message)
         print("{}".format(received))
         log.info("{}".format(received))
-        sock.close()
 
     @staticmethod
     def create_file():
         print("Enter file name: ")
         filename = input()
-        sock = socket(AF_INET, SOCK_STREAM)
-        sock.connect((ns_host, port))
 
         message = {"command": "create_file", "file_name": filename, "size": 0}
-        data = pickle.dumps(message)
-        sock.sendall(data)
-
-        data = b""
-        while True:
-            packet = sock.recv(block_size)
-            if not packet: break
-            data += packet
-        received = pickle.loads(data)
+        received = CUtils.send_message(ns_host, message)
         print("{}".format(received))
         log.info("{}".format(received))
-        sock.close()
 
     @staticmethod
     def write_file():
@@ -75,27 +82,37 @@ class ClientCommands:
         # generate message for NS
         message = {'command': 'write_file', 'file_name': dfs_file_name, 'size': file_size}
         response_code = CUtils.send_message(ns_host, message)
+        if not response_code['status'] == 'OK':
+            print(response_code['status'])
+            return
+
+        # get selected SS and replicas list
+        selected_ss = response_code['ss']
+        replicas_list = response_code['replicas']
+
+        # send message to selected SS
+        file_data = []
+        with open(file_name, 'rb') as file:
+            file_data.append(base64.b64encode(file.read()))
+
+        message = {'command': 'write_file', 'file_name': dfs_file_name, 'size': file_size, 'replicas': replicas_list,
+                   'data': file_data}
+        response_code = CUtils.send_message(selected_ss, message)
+
+        # check if response is OK and start sending file
+        if not response_code['status'] == 'OK':
+            print(response_code['status'])
+            return
 
         print(response_code)
+
 
     @staticmethod
     def get_naming_server_db_snapshot():
         print("Getting info about NamingServer ...")
         log.info("Getting info about NamingServer ...")
-        sock = socket(AF_INET, SOCK_STREAM)
-        sock.connect((ns_host, port))
 
         message = {"command": "db_snapshot"}
-        data = pickle.dumps(message)
-        sock.sendall(data)
-
-
-        data = b""
-        while True:
-            packet = sock.recv(block_size)
-            if not packet: break
-            data += packet
-        received = pickle.loads(data)
+        received = CUtils.send_message(ns_host, message)
         print("{}".format(received))
         log.info("{}".format(received))
-        sock.close()
