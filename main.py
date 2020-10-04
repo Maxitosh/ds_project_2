@@ -1,10 +1,9 @@
-from consolemenu import SelectionMenu
-a_list=["red", "blue", "green"]
+import pickle
 
-menu = SelectionMenu(a_list,"Select an option")
+msg = {"command":'send'}
 
-menu.show()
+print(pickle.dumps(msg))
 
-menu.join()
+str = b'\x80\x04\x95\x15\x00\x00\x00\x00\x00\x00\x00}\x94\x8c\x07command\x94\x8c\x04send\x94s.'
 
-selection = menu.selected_option
+print(pickle.load(str))

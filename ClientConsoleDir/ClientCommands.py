@@ -73,7 +73,7 @@ class ClientCommands:
         file_size = CUtils.get_file_size_in_bits(file_name)
 
         # generate message for NS
-        message = {'command': 'create_file', 'file_name': dfs_file_name, 'size': file_size}
+        message = {'command': 'write_file', 'file_name': dfs_file_name, 'size': file_size}
         response_code = CUtils.send_message(ns_host, message)
 
         print(response_code)
@@ -88,6 +88,7 @@ class ClientCommands:
         message = {"command": "db_snapshot"}
         data = pickle.dumps(message)
         sock.sendall(data)
+
 
         data = b""
         while True:

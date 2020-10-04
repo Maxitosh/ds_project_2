@@ -37,7 +37,7 @@ class NamingServerCommands:
 
         # init storages size
         for ss in storage_servers_db:
-            db.insert_item("DFS", "Storages", {ss: storage_size})
+            db.insert_item("DFS", "Storages", {'storage_name': ss, 'storage_size': storage_size})
 
         # remove data from SS
         for ss in storage_servers_db:
@@ -52,7 +52,7 @@ class NamingServerCommands:
             # log.info("[CLIENTCOMMANDS] {}".format(received))
             sock.close()
 
-        return {"status": "OK", "size_bits": storage_size * len(storage_servers_db)}
+        return {"status": "OK", "size_bits": storage_size}
 
     @staticmethod
     def do_create_file(args):
@@ -118,6 +118,9 @@ class NamingServerCommands:
             # update dirs of file system
             NSUtils.insert_dirs_into_db(ss, args['file_name'])
 
+        # update storages size
+        NSUtils.update_storages_size(alive_fit_nodes, args['size'])
+
         # choose any alive fit ss node
         picked_ss = storage_servers_db[random.randint(0, len(storage_servers_db) - 1)]
 
@@ -138,7 +141,6 @@ class NamingServerCommands:
 
     @staticmethod
     def do_heart_signal(args):
-        print("Got heartbeat from {}".format(args['ss']))
-        log.info("Got heartbeat from {}".format(args['ss']))
+        # print("Got heartbeat from {}".format(args['ss']))
+        # log.info("Got heartbeat from {}".format(args['ss']))
         db.update_ss_life_status(args['ss'])
-        print(db.ss_life)

@@ -65,17 +65,38 @@ class NamingServerUtils:
     def get_alive_ss(self, ss_list):
         alive_nodes = []
         for ss in ss_list:
-            if datetime.now() - db.ss_life[ss] < 60:
+            if (datetime.now() - db.ss_life[ss]).seconds < 60:
                 print("Node {} is alive".format(ss))
                 alive_nodes.append(ss)
 
         return alive_nodes
 
-
     def get_fit_nodes(self, ss_list, file_size):
         fit_nodes = []
-        for ss in ss_list:
-            if (int(db['DFS']['Storages'][ss]) - file_size) >= 0:
-                fit_nodes.append(ss)
+        storages = db.get_items('DFS', 'Storages')
+        for ss in storages:
+            # skip blank item
+            try:
+                if (int(ss['storage_size']) - file_size) >= 0 and ss['storage_name'] in ss_list:
+                    fit_nodes.append(ss['storage_name'])
+            except:
+                pass
 
         return fit_nodes
+
+    def get_storage_size(self, storage_name):
+        storages = db.get_items('DFS', 'Storages')
+        for ss in storages:
+            try:
+                if ss['storage_name'] == storage_name:
+                    return ss['storage_size']
+            except:
+                pass
+
+    def update_storages_size(self, ss_list, file_size):
+        for ss in ss_list:
+            storage_size = self.get_storage_size(ss)
+            db.update_item('DFS', 'Storages', {'storage_name': ss},
+                           {'storage_size': (storage_size - file_size)})
+            print("Updated storage size of {} from {} to {}".format(ss, storage_size, storage_size - file_size))
+            log.info("Updated storage size of {} from {} to {}".format(ss, storage_size, storage_size - file_size))

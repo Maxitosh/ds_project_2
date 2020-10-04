@@ -78,11 +78,11 @@ def insert_item(db_name, collection_name, item_data):
         log.error("Database {} does not exist!".format(db_name))
 
 
-# def update_item(shop_name, collection_name, query, new_product_data):
-#     if is_collection_exists(shop_name, collection_name):
-#         client[shop_name][collection_name].update_one(query, {"$set": new_product_data})
-#     else:
-#         print("DB or Collection does not exist!")
+def update_item(db_name, collection_name, query, new_data):
+    if is_collection_exists(db_name, collection_name):
+        client[db_name][collection_name].update_one(query, {"$set": new_data})
+    else:
+        print("DB or Collection does not exist!")
 
 
 def is_item_exists(db_name, collection_name, query):
@@ -102,10 +102,11 @@ def is_item_exists(db_name, collection_name, query):
 
 
 def get_items(db_name, collection_name):
-    return_items = {}
+    return_items = []
     if is_collection_exists(db_name, collection_name):
         items = client[db_name][collection_name].find()
-        return_items[collection_name] = items
+        for item in items:
+            return_items.append(item)
 
     return return_items
 
