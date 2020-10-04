@@ -1,10 +1,13 @@
+from datetime import datetime
+
 from pymongo import MongoClient
 
 import logging as log
 
-log.basicConfig(filename="db.log", format='[DB] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="db.log", format='%(asctime)s - %(levelname)s - [DB] %(message)s', level=log.DEBUG, force=True)
 client = MongoClient("mongodb://root:1234@mongodb:27017/?authSource=DFS")
 
+ss_life = {}
 
 def is_db_exists(db_name):
     db_list = client.list_database_names()
@@ -132,3 +135,8 @@ def get_db_snapshot(db_names):
 def print_dbs():
     db_list = client.list_database_names()
     print(db_list)
+
+
+def update_ss_life_status(ss_name):
+    global ss_life
+    ss_life[ss_name] = datetime.now()

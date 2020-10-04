@@ -1,10 +1,10 @@
 import os
 import pickle
+import threading
 from socket import *
 
 import logging as log
-
-
+from time import sleep
 
 dir = "/usr/src/app/data/"
 
@@ -50,3 +50,24 @@ class StorageServerUtils:
             dirs.append(dir + dir_append)
 
         return dirs
+
+    def init_heart_beat_system(self, name_server_hostname):
+        heart_beat_thread = threading.Thread(target=self.send_heart_signal, args=(name_server_hostname,), daemon=True)
+        heart_beat_thread.start()
+
+    def send_heart_signal(self, name_server_hostname):
+        ss_host_name = os.getenv('HOSTNAME')
+        # generate message
+        message = {"command": "heart_signal", "ss": ss_host_name}
+
+        while True:
+            try:
+                sock = socket(AF_INET, SOCK_STREAM)
+                sock.connect((name_server_hostname, 8800))
+                data = pickle.dumps(message)
+                sock.sendall(data)
+                log.info('Sent heart signal from {}'.format(ss_host_name))
+                sock.close()
+            except Exception as e:
+                print(e)
+            sleep(10)

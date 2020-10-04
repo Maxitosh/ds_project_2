@@ -8,7 +8,7 @@ from consolemenu import *
 from consolemenu.items import *
 import logging as log
 
-log.basicConfig(filename="client.log", format='[CLIENT] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="client.log", format='[CCO] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG, force=True)
 
 ###
 menu = ConsoleMenu()
@@ -23,6 +23,7 @@ def generate_menu():
     menu_g = ConsoleMenu("DFS control menu", "Subtitle")
     initialize_item = MenuItem("Initialize", should_exit=True)
     create_file_item = MenuItem("Create file", should_exit=True)
+    create_write_item = MenuItem("Write file", should_exit=True)
     function_item = FunctionItem("Call a Python function", function=print, args=["Enter an input", ])
     command_item = CommandItem("Run a console command", "touch hello.txt")
     selection_menu = SelectionMenu(["item1", "item2", "item3"], "Select option")
@@ -31,6 +32,7 @@ def generate_menu():
 
     menu_g.append_item(initialize_item)
     menu_g.append_item(create_file_item)
+    menu_g.append_item(create_write_item)
     menu_g.append_item(function_item)
     menu_g.append_item(command_item)
     menu_g.append_item(submenu_item)

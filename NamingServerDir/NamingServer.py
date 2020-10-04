@@ -6,7 +6,8 @@ import pickle
 from NamingServerCommands import NamingServerCommands
 import logging as log
 
-log.basicConfig(filename="dfs.log", format='[NS] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NS] %(message)s', level=log.DEBUG,
+                force=True)
 
 block_size = 1024
 NSCommands = NamingServerCommands()
@@ -30,7 +31,12 @@ class Server(Thread):
         while True:
             # try to read 1024 bytes from user
             # this is blocking call, thread will be paused here
-            data = pickle.loads(self.sock.recv(block_size))
+            received = b""
+            while True:
+                packet = self.sock.recv(block_size)
+                if not packet: break
+                received += packet
+            data = pickle.loads(received)
 
             # divide command and args
             command = {"command": data["command"]}

@@ -10,9 +10,9 @@ SSUtils = StorageServerUtils()
 class StorageServerCommands:
 
     def __init__(self):
-        host_name = os.getenv('HOSTNAME').upper()
-        log.basicConfig(filename="ss.log",
-                        format=('[{}] '.format(host_name) + '%(asctime)s - %(levelname)s - %(message)s'),
+        host_name = '[' + os.getenv('HOSTNAME').upper() + '] '
+        log.basicConfig(force=True, filename="ss.log",
+                        format=('%(asctime)s - %(levelname)s - ' + host_name + '%(message)s'),
                         level=log.DEBUG)
 
     def dispatch_command(self, command):

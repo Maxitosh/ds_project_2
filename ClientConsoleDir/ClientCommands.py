@@ -3,14 +3,16 @@ import pickle
 from socket import *
 from bson.json_util import loads
 import logging as log
+from ClientUtils import CLientUtils
 
-log.basicConfig(filename="client.log", format='[CLIENTCOMMANDS] %(asctime)s - %(levelname)s - %(message)s',
-                level=log.DEBUG)
+log.basicConfig(filename="client.log", format='[CCM] %(asctime)s - %(levelname)s - %(message)s',
+                level=log.DEBUG, force=True)
 
 host_name = "namingserver"
 port = 8800
 block_size = 1024
 
+CUtils = CLientUtils()
 
 class ClientCommands:
 
@@ -19,6 +21,8 @@ class ClientCommands:
             self.initialize_dfs()
         elif command == "Create file":
             self.create_file()
+        elif command == "Write file":
+            self.write_file()
         elif command == "Naming Server db snapshot":
             self.get_naming_server_db_snapshot()
 
@@ -58,6 +62,16 @@ class ClientCommands:
         print("{}".format(received))
         log.info("{}".format(received))
         sock.close()
+
+    @staticmethod
+    def write_file():
+        # get input from user
+        file_name, dfs_file_name = CUtils.get_filename_and_dfs_filename()
+
+        # get size of file
+        file_size = CUtils.get_file_size_in_bits(file_name)
+
+
 
     @staticmethod
     def get_naming_server_db_snapshot():

@@ -6,14 +6,19 @@ from time import sleep
 import platform
 
 from StorageServerCommands import StorageServerCommands
+from StorageServerUtils import StorageServerUtils
 import pickle
 import logging as log
 
-
+host_name = '[' + os.getenv('HOSTNAME').upper() + '] '
+log.basicConfig(force=True, filename="ss.log",
+                format=('%(asctime)s - %(levelname)s - ' + host_name + '%(message)s'),
+                level=log.DEBUG)
 
 block_size = 1024
 clients = []
 SSCommands = StorageServerCommands()
+SSUtils = StorageServerUtils()
 
 
 class Server(Thread):
@@ -56,12 +61,9 @@ class Server(Thread):
 
 
 def main():
-    host_name = os.getenv('HOSTNAME').upper()
-    log.basicConfig(filename="ss1.log", format=("[{}] ".format(host_name) + '%(asctime)s - %(levelname)s - %(message)s'),
-                    level=log.DEBUG)
     print("starting...")
     log.info("starting...")
-
+    SSUtils.init_heart_beat_system("namingserver")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     next_user = 1

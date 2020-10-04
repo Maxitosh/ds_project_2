@@ -5,7 +5,7 @@ import db_worker as db
 import logging as log
 
 dir = "/usr/src/app/data/"
-log.basicConfig(filename="dfs.log", format='[NSU] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSU] %(message)s', level=log.DEBUG, force=True)
 
 
 class NamingServerUtils:
@@ -59,3 +59,9 @@ class NamingServerUtils:
             if ss != picked_ss:
                 ss_to_replicas.append(ss)
         return ss_to_replicas
+
+
+    def update_ss_life_status(self, ss_name):
+        db.ss_life[ss_name] = 30
+
+

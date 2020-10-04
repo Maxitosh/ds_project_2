@@ -6,7 +6,8 @@ import db_worker as db
 import logging as log
 from NamingServerUtils import NamingServerUtils
 
-log.basicConfig(filename="dfs.log", format='[NSC] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
+log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSC] %(message)s', level=log.DEBUG,
+                force=True)
 
 # TODO move it to some config file
 naming_server_db = ["DFS"]
@@ -66,8 +67,6 @@ class NamingServerCommands:
         # update dirs of file system
         NSUtils.insert_dirs_into_db("DFS", args['file_name'])
 
-
-
         # TODO check alive SS, for now pick random
         # choose alive SS
         picked_ss = random.randint(0, len(storage_servers_db) - 1)
@@ -91,3 +90,9 @@ class NamingServerCommands:
         print("Gathering info about NamingServer")
         log.info("Gathering info about NamingServer")
         return db.get_db_snapshot(naming_server_db + storage_servers_db)
+
+    def do_heart_signal(self, args):
+        print("Got heartbeat from {}".format(args['ss']))
+        log.info("Got heartbeat from {}".format(args['ss']))
+        db.update_ss_life_status(args['ss'])
+        print(db.ss_life)
