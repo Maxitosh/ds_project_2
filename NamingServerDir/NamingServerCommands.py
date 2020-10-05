@@ -23,8 +23,7 @@ class NamingServerCommands:
     def dispatch_command(self, command):
         return getattr(self, 'do_' + command["command"], None)
 
-    @staticmethod
-    def do_init():
+    def do_init(self):
         print("Initialization called by client")
         log.info("Initialization called by client")
 
@@ -50,8 +49,7 @@ class NamingServerCommands:
 
         return {"status": "OK", "size_bits": storage_size}
 
-    @staticmethod
-    def do_create_file(args):
+    def do_create_file(self, args):
         print("Creation of file {}".format(NSUtils.get_full_path(args["file_name"])))
         log.info("Creation of file {}".format(NSUtils.get_full_path(args["file_name"])))
 
@@ -64,27 +62,43 @@ class NamingServerCommands:
         # update dirs of file system
         NSUtils.insert_dirs_into_db("DFS", args['file_name'])
 
-        # TODO check alive SS, for now pick random
+        # get list of alive nodes
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
         # choose alive SS
-        picked_ss = random.randint(0, len(storage_servers_db) - 1)
+        picked_ss = random.randint(0, len(alive_nodes) - 1)
 
-        # TODO check if SS is alive to write its DB
-        for i in range(len(storage_servers_db)):
+        for i in range(len(alive_nodes)):
             # update ss file system
-            NSUtils.insert_file_into_db(storage_servers_db[i], args)
+            NSUtils.insert_file_into_db(alive_nodes[i], args)
             # update ss dirs
-            NSUtils.insert_dirs_into_db(storage_servers_db[i], args['file_name'])
+            NSUtils.insert_dirs_into_db(alive_nodes[i], args['file_name'])
 
         # get list of ss to get replicas
-        ss_replicas_list = NSUtils.get_ss_for_replicas(storage_servers_db[picked_ss], storage_servers_db)
+        ss_replicas_list = NSUtils.get_ss_for_replicas(alive_nodes[picked_ss], alive_nodes)
 
         message = {"command": "create_file", "file_name": args["file_name"], "replicas": ss_replicas_list}
-        NSUtils.send_message(storage_servers_db[picked_ss], message)
+        NSUtils.send_message(alive_nodes[picked_ss], message)
 
         return {"status": "OK"}
 
-    @staticmethod
-    def do_write_file(args):
+    def do_read_file(self, args):
+        print("Reading of file {}".format(NSUtils.get_full_path(args["file_name"])))
+        log.info("Reading of file {}".format(NSUtils.get_full_path(args["file_name"])))
+
+        if not NSUtils.is_file_exists(NSUtils.get_full_path(args['file_name'])):
+            return {'status': 'File does not exist'}
+
+        # get list of alive nodes
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+        # choose alive SS
+        picked_ss = alive_nodes[random.randint(0, len(alive_nodes) - 1)]
+
+        # get file size
+        file_size = NSUtils.get_file_size(args['file_name'])
+
+        return {'status': 'OK', 'ss': picked_ss, 'file_size': file_size}
+
+    def do_write_file(self, args):
         print("Write file {}".format(NSUtils.get_full_path(args["file_name"])))
         log.info("Write file {}".format(NSUtils.get_full_path(args["file_name"])))
 
@@ -128,8 +142,7 @@ class NamingServerCommands:
 
         return message
 
-    @staticmethod
-    def do_delete_file(args):
+    def do_delete_file(self, args):
         print("Delete file {}".format(args['file_name']))
         log.info("Delete file {}".format(args['file_name']))
 
@@ -159,14 +172,13 @@ class NamingServerCommands:
 
         return {'status': 'OK'}
 
-    @staticmethod
-    def do_db_snapshot():
+    def do_db_snapshot(self):
         print("Gathering info about NamingServer")
         log.info("Gathering info about NamingServer")
         return db.get_db_snapshot(naming_server_db + storage_servers_db)
 
-    @staticmethod
-    def do_heart_signal(args):
+    def do_heart_signal(self, args):
+        # TODO check here for SS storages consistency
         # print("Got heartbeat from {}".format(args['ss']))
         # log.info("Got heartbeat from {}".format(args['ss']))
         db.update_ss_life_status(args['ss'])

@@ -8,6 +8,7 @@ log.basicConfig(filename="client.log", format='[CU] %(asctime)s - %(levelname)s 
 
 block_size = 1024
 
+
 def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd="\r"):
     """
     Call in a loop to create terminal progress bar
@@ -29,10 +30,10 @@ def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=
     if iteration == total:
         print()
 
+
 class ClientUtils:
 
     def get_filename_and_dfs_filename(self):
-        print("Enter local file name and name of file to write in DFS: ")
         inp = input().split(' ')
         file_name = inp[0]
         dfs_file_name = inp[1]
@@ -63,7 +64,6 @@ class ClientUtils:
         received = pickle.loads(data)
         sock.close()
         return received
-
 
     def send_file(self, host_name, message, file_name):
         sock = socket(AF_INET, SOCK_STREAM)
@@ -102,6 +102,31 @@ class ClientUtils:
 
             # debug
             assert sent == len(bytes)
+
+        sock.close()
+        return {'status': 'OK'}
+
+    def read_file(self, host_name, message, local_file_name, file_size):
+        sock = socket(AF_INET, SOCK_STREAM)
+        sock.connect((host_name, 8800))
+        data = pickle.dumps(message)
+        sock.sendall(data)
+
+        file = open(local_file_name, 'wb')  # open file
+        total_got = 0
+        printProgressBar(total_got, file_size, prefix='Progress:', suffix='Complete',
+                         length=50)  # init progress bar
+        while True:
+            data = sock.recv(block_size)
+            if not data:
+                break  # till closed on server side
+            file.write(data)
+
+            # update vars for progress bar
+            total_got += len(data)
+
+            # update progress bar
+            printProgressBar(total_got, file_size, prefix='Progress:', suffix='Complete', length=50)
 
         sock.close()
         return {'status': 'OK'}

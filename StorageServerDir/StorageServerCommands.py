@@ -19,8 +19,7 @@ class StorageServerCommands:
     def dispatch_command(self, command):
         return getattr(self, 'do_' + command["command"], None)
 
-    @staticmethod
-    def do_init(args):
+    def do_init(self, args):
         print("Initialization called by client")
         log.info("Initialization called by client")
         for root, dirs, files in os.walk('/usr/src/app/data/'):
@@ -33,8 +32,7 @@ class StorageServerCommands:
         log.info("Initialization completed, all files removed")
         return {"status": "OK"}
 
-    @staticmethod
-    def do_create_file(args):
+    def do_create_file(self, args):
         print("File creation called by client")
         log.info("File creation called by client")
 
@@ -55,8 +53,14 @@ class StorageServerCommands:
         log.info("File {} created".format(args["file_name"]))
         return {"status": "OK", "size": 0}
 
-    @staticmethod
-    def do_write_file(args):
+    def do_read_file(self, args):
+        print("File {} reading called by client".format(args['file_name']))
+        log.info("File {} reading called by client".format(args['file_name']))
+
+        SSUtils.send_file(args['socket'], dir + args['file_name'])
+        return 0
+
+    def do_write_file(self, args):
         print("File writing called by client")
         log.info("File writing called by client")
 
@@ -76,8 +80,7 @@ class StorageServerCommands:
         log.info("File {} downloaded".format(args["file_name"]))
         return 0  # {"status": "OK", "size": args['size']}
 
-    @staticmethod
-    def do_delete_file(args):
+    def do_delete_file(self, args):
         print("File {} deleting called by client".format(args['file_name']))
         log.info("File {} deleting called by client".format(args['file_name']))
 

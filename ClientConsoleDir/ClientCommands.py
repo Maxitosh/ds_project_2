@@ -17,9 +17,6 @@ block_size = 1024
 CUtils = ClientUtils()
 
 
-
-
-
 class ClientCommands:
 
     def dispatch_command(self, command):
@@ -27,6 +24,8 @@ class ClientCommands:
             self.initialize_dfs()
         elif command == "Create file":
             self.create_file()
+        elif command == "Read file":
+            self.read_file()
         elif command == "Write file":
             self.write_file()
         elif command == "Delete file":
@@ -34,8 +33,7 @@ class ClientCommands:
         elif command == "Naming Server db snapshot":
             self.get_naming_server_db_snapshot()
 
-    @staticmethod
-    def initialize_dfs():
+    def initialize_dfs(self):
         print("Starting initialization of DFS")
         log.info("Starting initialization of DFS")
 
@@ -44,8 +42,7 @@ class ClientCommands:
         print("{}".format(received))
         log.info("{}".format(received))
 
-    @staticmethod
-    def create_file():
+    def create_file(self):
         print("Enter file name: ")
         filename = input()
 
@@ -54,9 +51,30 @@ class ClientCommands:
         print("{}".format(received))
         log.info("{}".format(received))
 
-    @staticmethod
-    def write_file():
+    def read_file(self):
+        print("Enter DFS file name and file name after downloading...")
+        log.info("Enter DFS file name and file name after downloading...")
+        dfs_file_name, file_name = CUtils.get_filename_and_dfs_filename()  # inverse here
+        message = {"command": "read_file", "file_name": dfs_file_name}
+        received = CUtils.send_message(ns_host, message)
+
+        if not received['status'] == 'OK':
+            print(received)
+            log.error(received)
+            return
+        print(received)
+        log.info(received)
+
+        # send message to SS to read file
+        message = {"command": "read_file", "file_name": dfs_file_name}
+        received = CUtils.read_file(received['ss'], message, file_name, received['file_size'])
+
+        print("{}".format(received))
+        log.info("{}".format(received))
+
+    def write_file(self):
         # get input from user
+        print("Enter local file name and name of file to write in DFS: ")
         file_name, dfs_file_name = CUtils.get_filename_and_dfs_filename()
 
         # get size of file
@@ -73,11 +91,6 @@ class ClientCommands:
         selected_ss = response_code['ss']
         replicas_list = response_code['replicas']
 
-        # # send message to selected SS
-        # file_data = []
-        # with open(file_name, 'rb') as file:
-        #     file_data.append(base64.b64encode(file.read()))
-
         message = {'command': 'write_file', 'file_name': dfs_file_name, 'size': file_size, 'replicas': replicas_list}
         # response_code = CUtils.send_message(selected_ss, message)
         response_code = CUtils.send_file(selected_ss, message, file_name)
@@ -89,8 +102,7 @@ class ClientCommands:
 
         print(response_code)
 
-    @staticmethod
-    def delete_file():
+    def delete_file(self):
         print("Enter DFS file name")
         log.info("Enter DFS file name")
         file_name = input()
@@ -104,9 +116,7 @@ class ClientCommands:
 
         print(response_code)
 
-
-    @staticmethod
-    def get_naming_server_db_snapshot():
+    def get_naming_server_db_snapshot(self):
         print("Getting info about NamingServer ...")
         log.info("Getting info about NamingServer ...")
 

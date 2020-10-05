@@ -131,3 +131,12 @@ class StorageServerUtils:
             file.write(data)
 
         file.close()
+
+    def send_file(self, sock, file_name):
+
+        file = open(file_name, 'rb')  # open file
+        while True:
+            bytes = file.read(block_size)  # read block_size at a time
+            if not bytes:
+                break  # until file totally sent
+            sent = sock.send(bytes)
