@@ -292,6 +292,19 @@ class NamingServerCommands:
 
         return {'status': 'OK'}
 
+    def do_read_directory(self, args):
+        print("Read directory {}".format(args['directory_name']))
+        log.info("Read directory {}".format(args['directory_name']))
+
+        # check if directory exists
+        dir_data = NSUtils.get_entry_from_db("DFS", "Directories",
+                                             {'directory_name': NSUtils.get_full_path(args['directory_name'])})
+        if dir_data == 0: return {'status': 'Failed, no directory exists'}
+
+        entries = NSUtils.read_directory(NSUtils.get_full_path(args['directory_name']))
+
+        return {'status': 'OK', 'data': entries}
+
     def do_db_snapshot(self):
         print("Gathering info about NamingServer")
         log.info("Gathering info about NamingServer")

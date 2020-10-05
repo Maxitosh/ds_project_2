@@ -1,6 +1,6 @@
 
 
 
-str = "fff "
+str = "fff.jpeg"
 
-print(str.split(' '))
+print("fff" in str)

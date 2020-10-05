@@ -151,3 +151,38 @@ class NamingServerUtils:
         received = pickle.loads(rec)
         sock.close()
         return received
+
+    def read_directory(self, directory_name):
+        data = []
+
+        # get all files
+        files = db.get_items('DFS', 'Files')
+
+        # get all dirs
+        dirs = db.get_items('DFS', 'Directories')
+
+        # work with dirs
+        for dir in dirs:
+            try:
+                if directory_name in dir['directory_name'] and directory_name != dir['directory_name']:
+                    item = dir['directory_name'].replace(directory_name, '').split('/')[0] + '/'
+                    # check if such dir already counted
+                    if item not in data:
+                        data.append(item)
+            # skip exception, because there are blank files
+            except:
+                pass
+
+        # work with files
+        for file in files:
+            try:
+                if directory_name in file['file_name']:
+                    item = file['file_name'].replace(directory_name, '')
+                    # check if there file nested in another dir, we don't need it
+                    if '/' not in item:
+                        data.append(item)
+            # skip exception, because there are blank files
+            except:
+                pass
+
+        return data

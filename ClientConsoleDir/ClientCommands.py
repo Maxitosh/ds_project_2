@@ -36,6 +36,8 @@ class ClientCommands:
             self.copy_file()
         elif command == "Move file":
             self.move_file()
+        elif command == "Read directory":
+            self.read_directory()
         elif command == "Naming Server db snapshot":
             self.get_naming_server_db_snapshot()
 
@@ -167,6 +169,21 @@ class ClientCommands:
             print(response_code['status'])
             return
 
+        print(response_code)
+
+    def read_directory(self):
+        print("Enter directory...")
+        log.info("Enter directory...")
+        directory_name = input()
+
+        # generate message for NS
+        message = {'command': 'read_directory', 'directory_name': directory_name}
+        response_code = CUtils.send_message(ns_host, message)
+        if not response_code['status'] == 'OK':
+            print(response_code['status'])
+            return
+
+        # TODO add pretty output here
         print(response_code)
 
     def get_naming_server_db_snapshot(self):
