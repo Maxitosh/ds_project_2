@@ -130,3 +130,22 @@ class ClientUtils:
 
         sock.close()
         return {'status': 'OK'}
+
+    def send_delete_dir(self, host_name, message):
+        sock = socket(AF_INET, SOCK_STREAM)
+        sock.connect((host_name, 8800))
+        data = pickle.dumps(message)
+        sock.sendall(data)
+
+        data = sock.recv(block_size)
+        received = pickle.loads(data)
+
+        if received['status'] == "Confirmation":
+            print("Do you want to delete all from directory")
+            log.info("Do you want to delete all from directory")
+            conf = input()
+            data = pickle.dumps({'confirmation': conf})
+            sock.sendall(data)
+
+        sock.close()
+        return received

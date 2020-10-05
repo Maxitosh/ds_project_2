@@ -23,7 +23,7 @@ class NamingServerCommands:
     def dispatch_command(self, command):
         return getattr(self, 'do_' + command["command"], None)
 
-    def do_init(self):
+    def do_init(self, args):
         print("Initialization called by client")
         log.info("Initialization called by client")
 
@@ -59,7 +59,7 @@ class NamingServerCommands:
             return {"status": "File exists"}
 
         # update main file system
-        NSUtils.insert_file_into_db("DFS", args)
+        NSUtils.insert_file_into_db("DFS", {'file_name': args['file_name'], 'size': 0})
         # update dirs of file system
         NSUtils.insert_dirs_into_db_using_file_name("DFS", args['file_name'])
 
@@ -70,7 +70,7 @@ class NamingServerCommands:
 
         for i in range(len(alive_nodes)):
             # update ss file system
-            NSUtils.insert_file_into_db(alive_nodes[i], args)
+            NSUtils.insert_file_into_db(alive_nodes[i], {'file_name': args['file_name'], 'size': 0})
             # update ss dirs
             NSUtils.insert_dirs_into_db_using_file_name(alive_nodes[i], args['file_name'])
 
@@ -119,13 +119,13 @@ class NamingServerCommands:
             return {'status': 'NotEnoughSpace'}
 
         # update main file system
-        NSUtils.insert_file_into_db("DFS", args)
+        NSUtils.insert_file_into_db("DFS", {'file_name': args['file_name'], 'size': args['size']})
         # update dirs of file system
         NSUtils.insert_dirs_into_db_using_file_name("DFS", args['file_name'])
 
         # update ss file system
         for ss in alive_fit_nodes:
-            NSUtils.insert_file_into_db(ss, args)
+            NSUtils.insert_file_into_db(ss,  {'file_name': args['file_name'], 'size': args['size']})
             # update dirs of file system
             NSUtils.insert_dirs_into_db_using_file_name(ss, args['file_name'])
 
@@ -305,7 +305,79 @@ class NamingServerCommands:
 
         return {'status': 'OK', 'data': entries}
 
-    def do_db_snapshot(self):
+    def do_make_directory(self, args):
+        dir_data = NSUtils.get_entry_from_db("DFS", "Directories",
+                                             {'directory_name': NSUtils.get_full_path(args['directory_name'])})
+        if dir_data != 0: return {'status': 'Failed, directory exists'}
+
+        # update DFS file system
+        NSUtils.insert_dirs_into_db("DFS", [NSUtils.get_full_path(args['directory_name'])])
+        # get list of alive nodes
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+
+        # update file system of alive nodes
+        for ss in alive_nodes:
+            message = {"command": "make_directory", 'directory_name': NSUtils.get_full_path(args['directory_name'])}
+            response = NSUtils.send_message(ss, message)
+            log.info("Init response of {}: {}".format(ss, response))
+            NSUtils.insert_dirs_into_db(ss, [NSUtils.get_full_path(args['directory_name'])])
+
+        return {'status': 'OK'}
+
+    def do_delete_directory(self, args):
+        dir_data = NSUtils.get_entry_from_db("DFS", "Directories",
+                                             {'directory_name': NSUtils.get_full_path(args['directory_name'])})
+        if dir_data == 0: return {'status': 'Failed, directory does not exist'}
+
+        entries = NSUtils.read_directory(NSUtils.get_full_path(args['directory_name']))
+
+        if len(entries) == 0:
+            # send message to client
+            NSUtils.send_message_using_socket(args['socket'], {'status': 'OK'})
+
+            # delete dir from DFS
+            NSUtils.delete_entry_from_db('DFS', 'Directories',
+                                         {'directory_name': NSUtils.get_full_path(args['directory_name'])})
+
+            # get alive nodes
+            alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+            for ss in alive_nodes:
+                # delete dir from ss
+                NSUtils.delete_entry_from_db(ss, 'Directories',
+                                             {'directory_name': NSUtils.get_full_path(args['directory_name'])})
+                message = {"command": "delete_directory",
+                           'directory_name': NSUtils.get_full_path(args['directory_name'])}
+                response = NSUtils.send_message(ss, message)
+
+        else:
+            # send message to client
+            response = NSUtils.send_message_using_socket_with_response(args['socket'], {'status': 'Confirmation'})
+            if response['confirmation'] == 'y':
+                # delete files from DFS
+                total_free_space = NSUtils.delete_all_sub_entries_of_directory('DFS', 'Files', NSUtils.get_full_path(args['directory_name']))
+                # delete dirs from DFS
+                NSUtils.delete_all_sub_entries_of_directory('DFS', 'Directories',
+                                                            NSUtils.get_full_path(args['directory_name']))
+                # get alive nodes
+                alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+
+                # update storages size
+                NSUtils.update_storages_size(alive_nodes, -total_free_space)
+                for ss in alive_nodes:
+                    # delete files from ss
+                    NSUtils.delete_all_sub_entries_of_directory(ss, 'Files',
+                                                                NSUtils.get_full_path(args['directory_name']))
+
+                    # delete dirs from ss
+                    NSUtils.delete_all_sub_entries_of_directory(ss, 'Directories',
+                                                                NSUtils.get_full_path(args['directory_name']))
+                    message = {"command": "delete_directory",
+                               'directory_name': NSUtils.get_full_path(args['directory_name'])}
+                    response = NSUtils.send_message(ss, message)
+
+        return 0
+
+    def do_db_snapshot(self, args):
         print("Gathering info about NamingServer")
         log.info("Gathering info about NamingServer")
         return db.get_db_snapshot(naming_server_db + storage_servers_db)

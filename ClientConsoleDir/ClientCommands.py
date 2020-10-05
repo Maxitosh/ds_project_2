@@ -38,6 +38,10 @@ class ClientCommands:
             self.move_file()
         elif command == "Read directory":
             self.read_directory()
+        elif command == "Make directory":
+            self.make_directory()
+        elif command == "Delete directory":
+            self.delete_directory()
         elif command == "Naming Server db snapshot":
             self.get_naming_server_db_snapshot()
 
@@ -172,8 +176,8 @@ class ClientCommands:
         print(response_code)
 
     def read_directory(self):
-        print("Enter directory...")
-        log.info("Enter directory...")
+        print("Enter directory name to read...")
+        log.info("Enter directory name to read...")
         directory_name = input()
 
         # generate message for NS
@@ -184,6 +188,35 @@ class ClientCommands:
             return
 
         # TODO add pretty output here
+        print(response_code)
+
+    def make_directory(self):
+        print("Enter directory name to make...")
+        log.info("Enter directory name to make...")
+        directory_name = input()
+
+        # generate message for NS
+        message = {'command': 'make_directory', 'directory_name': directory_name}
+        response_code = CUtils.send_message(ns_host, message)
+        if not response_code['status'] == 'OK':
+            print(response_code['status'])
+            return
+
+        print(response_code)
+
+    def delete_directory(self):
+        print("Enter directory name to delete...")
+        log.info("Enter directory name to delete...")
+        directory_name = input()
+
+        # generate message for NS
+        message = {'command': 'delete_directory', 'directory_name': directory_name}
+        response_code = CUtils.send_delete_dir(ns_host, message)
+
+        if not response_code['status'] == 'OK':
+            print(response_code['status'])
+            return
+
         print(response_code)
 
     def get_naming_server_db_snapshot(self):

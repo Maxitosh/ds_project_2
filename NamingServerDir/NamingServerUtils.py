@@ -128,6 +128,30 @@ class NamingServerUtils:
         print("Deleted file {}".format(query))
         log.info("Deleted file {}".format(query))
 
+    def delete_all_sub_entries_of_directory(self, db_name, collection_name, directory_name):
+        items = db.get_items(db_name, collection_name)
+        file_total_size_deleted = 0
+        if collection_name == "Files":
+            for item in items:
+                try:
+                    if directory_name in item['file_name']:
+                        db.delete_document(db_name, collection_name, item)
+                        print("Deleted file {}".format(item))
+                        log.info("Deleted file {}".format(item))
+                        file_total_size_deleted += item['size']
+                except:
+                    pass
+        else:
+            for item in items:
+                try:
+                    if directory_name in item['directory_name']:
+                        db.delete_document(db_name, collection_name, item)
+                        print("Deleted directory {}".format(item))
+                        log.info("Deleted directory {}".format(item))
+                except:
+                    pass
+        return file_total_size_deleted
+
     def update_storages_size(self, ss_list, file_size):
         for ss in ss_list:
             storage_size = self.get_storage_size(ss)
@@ -149,6 +173,19 @@ class NamingServerUtils:
             if not packet: break
             rec += packet
         received = pickle.loads(rec)
+        sock.close()
+        return received
+
+    def send_message_using_socket(self, sock, message):
+        data = pickle.dumps(message)
+        sock.sendall(data)
+
+    def send_message_using_socket_with_response(self, sock, message):
+        data = pickle.dumps(message)
+        sock.sendall(data)
+
+        data = sock.recv(block_size)
+        received = pickle.loads(data)
         sock.close()
         return received
 

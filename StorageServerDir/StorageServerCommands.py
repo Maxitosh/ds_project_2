@@ -113,3 +113,19 @@ class StorageServerCommands:
             print(e)
             log.error(e)
         return {'status': 'OK'}
+
+    def do_make_directory(self, args):
+        print("Create directory {}".format(args['directory_name']))
+        log.info("Create directory {}".format(args['directory_name']))
+
+        SSUtils.mkdir(args['directory_name'])
+
+        return {'status': 'OK'}
+
+    def do_delete_directory(self, args):
+        print("Delete directory {}".format(args['directory_name']))
+        log.info("Delete directory {}".format(args['directory_name']))
+
+        SSUtils.rm_entry(args['directory_name'])
+
+        return {'status': 'OK'}

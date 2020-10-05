@@ -42,7 +42,7 @@ class Server(Thread):
 
             # divide command and args
             command = {"command": data["command"]}
-            args = {}
+            args = {'socket': self.sock}
             for key, value in data.items():
                 if key != "command":
                     args[key] = value
