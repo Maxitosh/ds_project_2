@@ -172,6 +172,70 @@ class NamingServerCommands:
 
         return {'status': 'OK'}
 
+    def do_info_file(self, args):
+        print("Info about file {}".format(args['file_name']))
+        log.info("Info about file {}".format(args['file_name']))
+
+        file_data = NSUtils.get_entry_from_db("DFS", "Files", {'file_name': NSUtils.get_full_path(args['file_name'])})
+        if file_data == 0: return {'status': 'Failed'}
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+        return {'status': 'OK', 'file_name': file_data['file_name'], 'file_size': file_data['size'],
+                'nodes': alive_nodes}
+
+    def do_copy_file(self, args):
+        print("Copy file {} to {}".format(NSUtils.get_full_path(args['file_name']),
+                                          NSUtils.get_full_path(args['directory'])))
+        log.info("Copy file {} to {}".format(NSUtils.get_full_path(args['file_name']),
+                                             NSUtils.get_full_path(args['directory'])))
+
+        # get clear file name
+        file_name_without_dirs = args['file_name'].split('/')[len(args['file_name'].split('/')) - 1]
+
+        # get target file name
+        target_file = NSUtils.get_entry_from_db("DFS", "Files",
+                                             {'file_name': (NSUtils.get_full_path(args['directory']) +file_name_without_dirs)})
+        if target_file != 0:
+            return {'status': 'File already exists'}
+
+        dir_data = NSUtils.get_entry_from_db("DFS", "Directories",
+                                             {'directory_name': NSUtils.get_full_path(args['directory'])})
+        if dir_data == 0: return {'status': 'Failed, no directory exists'}
+
+        # get file data
+        file_data = NSUtils.get_entry_from_db("DFS", "Files", {'file_name': NSUtils.get_full_path(args['file_name'])})
+        if file_data == 0: return {'status': 'File does not exist'}
+
+        # get alive nodes
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+        # get alive fit nodes
+        alive_fit_nodes = NSUtils.get_fit_nodes(alive_nodes, file_data['size'])
+
+        # check if file does not fit
+        if len(alive_fit_nodes) == 0:
+            return {'status': 'Not enough space or no alive nodes'}
+
+        # update main file system
+        NSUtils.insert_file_into_db("DFS",
+                                    {'file_name': (args['directory'] + file_name_without_dirs),
+                                     'size': file_data['size']})
+
+        # update ss file system
+        for ss in alive_fit_nodes:
+            NSUtils.insert_file_into_db(ss, {
+                'file_name': (args['directory'] + file_name_without_dirs),
+                'size': file_data['size']})
+
+        # update storages size
+        NSUtils.update_storages_size(alive_fit_nodes, file_data['size'])
+
+        # send commands to ss
+        message = {"command": "copy_file", "file_name": file_data["file_name"],
+                   'directory': NSUtils.get_full_path(args["directory"])}
+        for ss in alive_nodes:
+            NSUtils.send_message(ss, message)
+
+        return {'status': 'OK'}
+
     def do_db_snapshot(self):
         print("Gathering info about NamingServer")
         log.info("Gathering info about NamingServer")

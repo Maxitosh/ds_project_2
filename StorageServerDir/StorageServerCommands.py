@@ -91,3 +91,14 @@ class StorageServerCommands:
             log.error(e)
 
         return {'status': 'OK'}
+
+    def do_copy_file(self, args):
+        print("File {} copy to {}".format(args['file_name'], args['directory']))
+        log.info("File {} copy to {}".format(args['file_name'], args['directory']))
+
+        try:
+            SSUtils.copy_file(args['file_name'], args['directory'])
+        except Exception as e:
+            print(e)
+            log.error(e)
+        return {'status': 'OK'}

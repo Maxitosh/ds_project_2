@@ -21,6 +21,10 @@ class StorageServerUtils:
     def delete_file(self, file_name):
         os.system("rm -rf {}".format(file_name))
 
+    def copy_file(self, file_name, directory):
+        file_name_without_dirs = file_name.split('/')[len(file_name.split('/'))-1]
+        os.system("cp {} {}".format(file_name, (directory+file_name_without_dirs)))
+
     def create_empty_file(self, file_name):
         os.system("touch {}".format(dir + file_name))
 

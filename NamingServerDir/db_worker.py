@@ -116,6 +116,13 @@ def get_items(db_name, collection_name):
     return return_items
 
 
+def get_item(db_name, collection_name, query):
+    return_items = []
+    if is_collection_exists(db_name, collection_name):
+        items = client[db_name][collection_name].find(query)
+        for item in items:
+            return_items.append(item)
+    return return_items
 
 
 def get_db_snapshot(db_names):
@@ -135,11 +142,6 @@ def get_db_snapshot(db_names):
     return return_items
 
 
-# def get_item(shop_name, collection_name, query):
-#     if is_collection_exists(shop_name, collection_name):
-#         return client[shop_name][collection_name].find(query)
-#     else:
-#         print("DB or Collection does not exist!")
 def print_dbs():
     db_list = client.list_database_names()
     print(db_list)

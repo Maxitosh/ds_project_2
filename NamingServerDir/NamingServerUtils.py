@@ -109,6 +109,14 @@ class NamingServerUtils:
             except:
                 pass
 
+    def get_entry_from_db(self, db_name, collection_name, query):
+        try:
+            return db.get_item(db_name, collection_name, query)[0]
+        except Exception as e:
+            print(e)
+            log.error(e)
+            return 0
+
     def delete_entry_from_db(self, db_name, collection_name, query):
         db.delete_document(db_name, collection_name, query)
         print("Deleted file {}".format(query))
