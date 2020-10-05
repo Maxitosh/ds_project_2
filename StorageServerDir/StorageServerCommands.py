@@ -102,3 +102,14 @@ class StorageServerCommands:
             print(e)
             log.error(e)
         return {'status': 'OK'}
+
+    def do_move_file(self, args):
+        print("File {} move to {}".format(args['file_name'], args['directory']))
+        log.info("File {} move to {}".format(args['file_name'], args['directory']))
+
+        try:
+            SSUtils.move_file(args['file_name'], args['directory'])
+        except Exception as e:
+            print(e)
+            log.error(e)
+        return {'status': 'OK'}

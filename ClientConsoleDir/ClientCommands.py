@@ -34,6 +34,8 @@ class ClientCommands:
             self.info_file()
         elif command == "Copy file":
             self.copy_file()
+        elif command == "Move file":
+            self.move_file()
         elif command == "Naming Server db snapshot":
             self.get_naming_server_db_snapshot()
 
@@ -144,6 +146,22 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'copy_file', 'file_name': dfs_file_name, 'directory': directory}
+        response_code = CUtils.send_message(ns_host, message)
+        if not response_code['status'] == 'OK':
+            print(response_code['status'])
+            return
+
+        print(response_code)
+
+    def move_file(self):
+        print("Enter DFS filename and target directory...")
+        log.info("Enter DFS filename and target directory...")
+        str = input().split(' ')
+        dfs_file_name = str[0]
+        directory = str[1]
+
+        # generate message for NS
+        message = {'command': 'move_file', 'file_name': dfs_file_name, 'directory': directory}
         response_code = CUtils.send_message(ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])

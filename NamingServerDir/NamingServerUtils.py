@@ -15,9 +15,15 @@ block_size = 1024
 
 class NamingServerUtils:
 
-    def insert_dirs_into_db(self, db_name, file_name):
+    def insert_dirs_into_db_using_file_name(self, db_name, file_name):
         dirs = self.__extract_dirs_from_filename(file_name)
         for directory in dirs:
+            if not db.is_item_exists(db_name, "Directories", {"directory_name": directory}):
+                db.insert_item(db_name, "Directories", {"directory_name": directory})
+                log.info("Inserted directory {} to {}".format(directory, db_name))
+
+    def insert_dirs_into_db(self, db_name, dir_names):
+        for directory in dir_names:
             if not db.is_item_exists(db_name, "Directories", {"directory_name": directory}):
                 db.insert_item(db_name, "Directories", {"directory_name": directory})
                 log.info("Inserted directory {} to {}".format(directory, db_name))
