@@ -17,26 +17,7 @@ block_size = 1024
 CUtils = ClientUtils()
 
 
-def printProgressBar(iteration, total, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd="\r"):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
-    # Print New Line on Complete
-    if iteration == total:
-        print()
+
 
 
 class ClientCommands:
@@ -90,14 +71,14 @@ class ClientCommands:
         selected_ss = response_code['ss']
         replicas_list = response_code['replicas']
 
-        # send message to selected SS
-        file_data = []
-        with open(file_name, 'rb') as file:
-            file_data.append(base64.b64encode(file.read()))
+        # # send message to selected SS
+        # file_data = []
+        # with open(file_name, 'rb') as file:
+        #     file_data.append(base64.b64encode(file.read()))
 
-        message = {'command': 'write_file', 'file_name': dfs_file_name, 'size': file_size, 'replicas': replicas_list,
-                   'data': file_data}
-        response_code = CUtils.send_message(selected_ss, message)
+        message = {'command': 'write_file', 'file_name': dfs_file_name, 'size': file_size, 'replicas': replicas_list}
+        # response_code = CUtils.send_message(selected_ss, message)
+        response_code = CUtils.send_file(selected_ss, message, file_name)
 
         # check if response is OK and start sending file
         if not response_code['status'] == 'OK':

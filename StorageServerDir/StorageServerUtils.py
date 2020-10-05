@@ -21,14 +21,42 @@ class StorageServerUtils:
     def create_empty_file(self, file_name):
         os.system("touch {}".format(dir + file_name))
 
-    def send_replicas_to_ss(self, file_name, file_data, file_size, storages_list):
+    def send_file_replicas_to_ss(self, file_name, storages_list):
         # generate message
         # TODO redo this for uniform command
-        message = {"command": "write_file", "file_name": file_name, 'size': file_size, 'data': file_data,
-                   "replicas": []}
+        message = {"command": "write_file", "file_name": file_name, "replicas": []}
 
         for ss_name in storages_list:
-            print(self.send_message(ss_name, message))
+            sock = socket(AF_INET, SOCK_STREAM)
+            sock.connect((ss_name, 8800))
+            data = pickle.dumps(message)
+            sock.sendall(data)
+
+            received = b""
+            data = sock.recv(block_size)
+            received += data
+            while data:
+                if len(data) < block_size: break
+                data = sock.recv(block_size)
+                received += data
+            received = pickle.loads(received)
+
+            if not received['command'] == 'ack':
+                return
+
+            file = open(dir + file_name, 'rb')  # open file
+            total_sent = 0
+            while True:
+                bytes = file.read(block_size)  # read block_size at a time
+                if not bytes:
+                    break  # until file totally sent
+                sent = sock.send(bytes)
+                # update vars for progress bar
+                total_sent += sent
+                # debug
+                assert sent == len(bytes)
+
+            sock.close()
             log.info('Sent replica of file {} to {} storage server'.format(file_name, ss_name))
 
     def send_replicas_of_empty_file_to_ss(self, file_name, storages_list):
@@ -85,3 +113,18 @@ class StorageServerUtils:
         received = pickle.loads(rec)
         sock.close()
         return received
+
+    def get_file(self, sock, file_name):
+        message = {'command': 'ack'}
+        data = pickle.dumps(message)
+        sock.sendall(data)
+
+        file = open(file_name, 'wb')
+        while 1:
+            # receive data
+            data = sock.recv(block_size)
+            if not data:
+                break  # till closed on server side
+            file.write(data)
+
+        file.close()
