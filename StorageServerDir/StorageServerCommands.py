@@ -75,3 +75,16 @@ class StorageServerCommands:
         print("File {} downloaded".format(args["file_name"]))
         log.info("File {} downloaded".format(args["file_name"]))
         return 0  # {"status": "OK", "size": args['size']}
+
+    @staticmethod
+    def do_delete_file(args):
+        print("File {} deleting called by client".format(args['file_name']))
+        log.info("File {} deleting called by client".format(args['file_name']))
+
+        try:
+            SSUtils.delete_file(args['file_name'])
+        except Exception as e:
+            print(e)
+            log.error(e)
+
+        return {'status': 'OK'}

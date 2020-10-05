@@ -69,7 +69,7 @@ class NamingServerUtils:
         alive_nodes = []
         for ss in ss_list:
             try:
-                if (datetime.now() - db.ss_life[ss]).seconds < 60:
+                if (datetime.now() - db.ss_life[ss]).seconds < 15:
                     print("Node {} is alive".format(ss))
                     alive_nodes.append(ss)
             except:
@@ -98,6 +98,21 @@ class NamingServerUtils:
                     return ss['storage_size']
             except:
                 pass
+
+    def get_file_size(self, file_name):
+        items = db.get_items("DFS", 'Files')
+        print(items)
+        for item in items:
+            try:
+                if item['file_name'] == self.get_full_path(file_name):
+                    return item['size']
+            except:
+                pass
+
+    def delete_entry_from_db(self, db_name, collection_name, query):
+        db.delete_document(db_name, collection_name, query)
+        print("Deleted file {}".format(query))
+        log.info("Deleted file {}".format(query))
 
     def update_storages_size(self, ss_list, file_size):
         for ss in ss_list:

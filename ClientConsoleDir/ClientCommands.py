@@ -29,6 +29,8 @@ class ClientCommands:
             self.create_file()
         elif command == "Write file":
             self.write_file()
+        elif command == "Delete file":
+            self.delete_file()
         elif command == "Naming Server db snapshot":
             self.get_naming_server_db_snapshot()
 
@@ -81,6 +83,21 @@ class ClientCommands:
         response_code = CUtils.send_file(selected_ss, message, file_name)
 
         # check if response is OK and start sending file
+        if not response_code['status'] == 'OK':
+            print(response_code['status'])
+            return
+
+        print(response_code)
+
+    @staticmethod
+    def delete_file():
+        print("Enter DFS file name")
+        log.info("Enter DFS file name")
+        file_name = input()
+
+        # generate message for NS
+        message = {'command': 'delete_file', 'file_name': file_name}
+        response_code = CUtils.send_message(ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return

@@ -129,6 +129,37 @@ class NamingServerCommands:
         return message
 
     @staticmethod
+    def do_delete_file(args):
+        print("Delete file {}".format(args['file_name']))
+        log.info("Delete file {}".format(args['file_name']))
+
+        # check if file exists
+        if not NSUtils.is_file_exists(NSUtils.get_full_path(args['file_name'])):
+            return {'status': 'File does not exist'}
+
+        # get file size
+        file_size = NSUtils.get_file_size(args['file_name'])
+
+        # delete file from DFS
+        NSUtils.delete_entry_from_db('DFS', 'Files', {'file_name': NSUtils.get_full_path(args['file_name'])})
+
+        # get alive nodes
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+        for ss in alive_nodes:
+            NSUtils.delete_entry_from_db(ss, 'Files', {'file_name': NSUtils.get_full_path(args['file_name'])})
+
+        # update storages size
+
+        print("Deletion file size is {}".format(file_size))
+        NSUtils.update_storages_size(alive_nodes, -file_size)
+        # send commands to ss
+        message = {"command": "delete_file", "file_name": NSUtils.get_full_path(args["file_name"])}
+        for ss in alive_nodes:
+            NSUtils.send_message(ss, message)
+
+        return {'status': 'OK'}
+
+    @staticmethod
     def do_db_snapshot():
         print("Gathering info about NamingServer")
         log.info("Gathering info about NamingServer")

@@ -9,6 +9,7 @@ client = MongoClient("mongodb://root:1234@mongodb:27017/?authSource=DFS")
 
 ss_life = {}
 
+
 def is_db_exists(db_name):
     db_list = client.list_database_names()
     if db_name in db_list:
@@ -85,6 +86,10 @@ def update_item(db_name, collection_name, query, new_data):
         print("DB or Collection does not exist!")
 
 
+def delete_document(db_name, collection_name, query):
+    client[db_name][collection_name].delete_one(query)
+
+
 def is_item_exists(db_name, collection_name, query):
     if is_collection_exists(db_name, collection_name):
         item = client[db_name][collection_name].find(query)
@@ -109,6 +114,8 @@ def get_items(db_name, collection_name):
             return_items.append(item)
 
     return return_items
+
+
 
 
 def get_db_snapshot(db_names):

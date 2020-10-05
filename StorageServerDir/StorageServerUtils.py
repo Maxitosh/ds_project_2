@@ -18,6 +18,9 @@ class StorageServerUtils:
     def mkdir(self, dir_name):
         os.system("mkdir {}".format(dir_name))
 
+    def delete_file(self, file_name):
+        os.system("rm -rf {}".format(file_name))
+
     def create_empty_file(self, file_name):
         os.system("touch {}".format(dir + file_name))
 
