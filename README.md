@@ -3,7 +3,7 @@
 ## Team
 Kureikin Maks
 
-##Project description
+## Project description
 The Distributed File System (DFS) is a file system with data stored on a server. The data is accessed and processed as if it was stored on the local client machine. The DFS makes it convenient to share information and files among users on a network.
 
 ## Installation
@@ -39,8 +39,9 @@ requests and manipulates the recourses of DFS.
 ## DFS workflow
 ![DFS workflow](images/general_wf.jpeg)
 
-When a client wishes to access a file, it first contacts the naming server to obtain information about the storage server hosting it.   
-After that, it communicates directly with the storage server to complete the operation.
+When a client wishes to access a file, it:
+* contacts the naming server to obtain information about the storage server hosting it 
+* communicates directly with the storage server to complete the operation
 
 ## Client workflow
 ![Client workflow](images/client_wf.jpeg)
@@ -64,3 +65,30 @@ The primary function of storage servers is to provide clients with access to fil
 Clients access storage servers in order to read and write files.  
 Storage servers must respond to certain commands from the naming server.
 
+## Description of communication protocols
+All nodes in DFS uses such structure of messages to communicate:
+```python
+{'command': '[COMMAND_NAME]', 'arg[1]':'arg[1]_value', ..., 'arg[n]': 'arg[n]_value'} 
+```
+For example, command for file uploading:
+```python
+message = {'command': 'write_file', 'file_name': file_name, 'size': file_size}
+```
+
+On each mode exists message dispatcher that takes message and calls appropriate function:
+```python
+def dispatch_command(self, command):
+    return getattr(self, 'do_' + command["command"], None)
+
+def do_init(self, args)
+def do_create_file(self, args)
+...
+...
+def do_delete_directory(self, args)
+```
+
+Also nodes send response message of the same form, to handle either a success or an occurred error:
+```python
+{'status': 'OK'}
+{'status': 'Failed'}
+```
