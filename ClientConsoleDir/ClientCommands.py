@@ -225,5 +225,13 @@ class ClientCommands:
 
         message = {"command": "db_snapshot"}
         received = CUtils.send_message(ns_host, message)
-        print("{}".format(received))
-        log.info("{}".format(received))
+
+        for db_name, db_data in received.items():
+            print(db_name)
+            log.info(db_name)
+            for coll, coll_data in db_data.items():
+                print("  {}".format(coll))
+                log.info("  {}".format(coll))
+                for item in coll_data:
+                    print("    {}".format(item))
+                    log.info("    {}".format(item))
