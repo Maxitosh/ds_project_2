@@ -110,7 +110,7 @@ class StorageServerUtils:
                 sock.close()
             except Exception as e:
                 print(e)
-            sleep(10)
+            sleep(5)
 
     def send_message(self, host_name, message):
         sock = socket(AF_INET, SOCK_STREAM)

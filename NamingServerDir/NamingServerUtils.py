@@ -76,7 +76,7 @@ class NamingServerUtils:
         alive_nodes = []
         for ss in ss_list:
             try:
-                if (datetime.now() - db.ss_life[ss]).seconds < 15:
+                if (datetime.now() - db.ss_life[ss]).seconds < 10:
                     print("Node {} is alive".format(ss))
                     alive_nodes.append(ss)
             except:
@@ -108,6 +108,16 @@ class NamingServerUtils:
 
     def get_file_size(self, file_name):
         items = db.get_items("DFS", 'Files')
+        print(items)
+        for item in items:
+            try:
+                if item['file_name'] == self.get_full_path(file_name):
+                    return item['size']
+            except:
+                pass
+
+    def get_file_size_from_db(self, db_name, file_name):
+        items = db.get_items(db_name, 'Files')
         print(items)
         for item in items:
             try:
@@ -244,8 +254,6 @@ class NamingServerUtils:
         return dirs
 
     def check_ss_consistency(self, ss_name):
-        # TODO change storages size and SS file system in db
-        if ss_name != 'SS3': return
         dfs_files = self.extract_files_data_from_db_entries(db.get_items('DFS', "Files"))
         dfs_dirs = self.extract_directories_data_from_db_entries(db.get_items('DFS', "Directories"))
 
@@ -256,11 +264,15 @@ class NamingServerUtils:
         commands_list = []
         commands_list_for_alive_ss = []
 
+        # space free and taken
+        total_free_space = 0
+        total_taken_space = 0
+
         # find old files to be deleted
         for ss_file in ss_files:
             if ss_file not in dfs_files:
                 commands_list.append({'command': 'delete_file', 'file_name': ss_file['file_name']})
-                # TODO count file size
+                total_free_space += ss_file['size']
                 self.delete_entry_from_db(ss_name, 'Files', {'file_name': ss_file['file_name']})
 
         # find old dirs to be deleted
@@ -287,6 +299,7 @@ class NamingServerUtils:
                     commands_list_for_alive_ss.append(
                         {"command": "send_file_replica", "file_name": dfs_file["file_name"].replace(dir, ''),
                          "replicas": [ss_name]})
+                    total_taken_space += dfs_file['size']
                     self.insert_file_into_db(ss_name, {"file_name": dfs_file["file_name"].replace(dir, ''),
                                                        'size': self.get_file_size(
                                                            dfs_file["file_name"].replace(dir, ''))})
@@ -301,6 +314,12 @@ class NamingServerUtils:
             print(e)
             log.error(e)
             return
+
+        if len(commands_list) == 0 and len(commands_list_for_alive_ss) == 0:
+            return
+
+        # update storage size
+        self.update_storages_size([ss_name], (total_taken_space-total_free_space))
 
         for command in commands_list:
             self.send_message(ss_name, command)
