@@ -1,6 +1,5 @@
 
 
+import os
 
-str = "fff.jpeg"
-
-print("fff" in str)
+os.system("mkdir dir1/")

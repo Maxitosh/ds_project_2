@@ -129,3 +129,6 @@ class StorageServerCommands:
         SSUtils.rm_entry(args['directory_name'])
 
         return {'status': 'OK'}
+
+    def do_send_file_replica(self, args):
+        SSUtils.send_file_replicas_to_ss(args['file_name'], args['replicas'])

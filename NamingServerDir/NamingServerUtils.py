@@ -11,6 +11,7 @@ log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSU] 
                 force=True)
 
 block_size = 1024
+storage_servers_db = ["SS1", "SS2", "SS3"]
 
 
 class NamingServerUtils:
@@ -223,3 +224,90 @@ class NamingServerUtils:
                 pass
 
         return data
+
+    def extract_files_data_from_db_entries(self, entries):
+        files = []
+        for entry in entries:
+            try:
+                files.append({'file_name': entry['file_name'], 'size': entry['size']})
+            except:
+                pass
+        return files
+
+    def extract_directories_data_from_db_entries(self, entries):
+        dirs = []
+        for entry in entries:
+            try:
+                dirs.append({'directory_name': entry['directory_name']})
+            except:
+                pass
+        return dirs
+
+    def check_ss_consistency(self, ss_name):
+        # TODO change storages size and SS file system in db
+        if ss_name != 'SS3': return
+        dfs_files = self.extract_files_data_from_db_entries(db.get_items('DFS', "Files"))
+        dfs_dirs = self.extract_directories_data_from_db_entries(db.get_items('DFS', "Directories"))
+
+        ss_files = self.extract_files_data_from_db_entries(db.get_items(ss_name, "Files"))
+        ss_dirs = self.extract_directories_data_from_db_entries(db.get_items(ss_name, "Directories"))
+
+        # commands list
+        commands_list = []
+        commands_list_for_alive_ss = []
+
+        # find old files to be deleted
+        for ss_file in ss_files:
+            if ss_file not in dfs_files:
+                commands_list.append({'command': 'delete_file', 'file_name': ss_file['file_name']})
+                # TODO count file size
+                self.delete_entry_from_db(ss_name, 'Files', {'file_name': ss_file['file_name']})
+
+        # find old dirs to be deleted
+        for ss_dir in ss_dirs:
+            if ss_dir not in dfs_dirs:
+                commands_list.append({'command': 'delete_directory', 'directory_name': ss_dir['directory_name']})
+                self.delete_entry_from_db(ss_name, 'Directories', {'directory_name': ss_dir['directory_name']})
+
+        # find new dirs to be made
+        for dfs_dir in dfs_dirs:
+            if dfs_dir not in ss_dirs:
+                commands_list.append({'command': 'make_directory', 'directory_name': dfs_dir['directory_name']})
+                self.insert_dirs_into_db(ss_name, [dfs_dir['directory_name']])
+
+        # find files to be made or downloaded
+        for dfs_file in dfs_files:
+            if dfs_file not in ss_files:
+                # if file size == 0 then do create_file command otherwise need to find replica from other SS
+                if dfs_file['size'] == 0:
+                    commands_list.append(
+                        {"command": "create_file", "file_name": dfs_file["file_name"].replace(dir, ''), "replicas": []})
+                    self.insert_file_into_db(ss_name, {"file_name": dfs_file["file_name"].replace(dir, ''), 'size': 0})
+                else:
+                    commands_list_for_alive_ss.append(
+                        {"command": "send_file_replica", "file_name": dfs_file["file_name"].replace(dir, ''),
+                         "replicas": [ss_name]})
+                    self.insert_file_into_db(ss_name, {"file_name": dfs_file["file_name"].replace(dir, ''),
+                                                       'size': self.get_file_size(
+                                                           dfs_file["file_name"].replace(dir, ''))})
+        # get alive nodes
+        try:
+            # TODO cnahnge to consistency in alive function
+            alive_nodes = self.get_alive_ss(storage_servers_db)
+            print(alive_nodes)
+            print(self.get_ss_for_replicas(ss_name, alive_nodes))
+            replica_sender_node = self.get_ss_for_replicas(ss_name, alive_nodes)[0]
+        except Exception as e:
+            print(e)
+            log.error(e)
+            return
+
+        for command in commands_list:
+            self.send_message(ss_name, command)
+
+        for replica_command in commands_list_for_alive_ss:
+            self.send_message(replica_sender_node, replica_command)
+
+        print(commands_list)
+        print('-------------------------------')
+        print(commands_list_for_alive_ss)

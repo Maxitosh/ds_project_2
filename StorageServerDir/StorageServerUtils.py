@@ -16,7 +16,7 @@ class StorageServerUtils:
         log.basicConfig(filename="ss.log", format='[SSU] %(asctime)s - %(levelname)s - %(message)s', level=log.DEBUG)
 
     def mkdir(self, dir_name):
-        os.system("mkdir {}".format(dir_name))
+        os.system("mkdir -p {}".format(dir_name))
 
     def rm_entry(self, name):
         os.system("rm -rf {}".format(name))

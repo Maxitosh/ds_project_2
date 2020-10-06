@@ -133,7 +133,7 @@ class NamingServerCommands:
         NSUtils.update_storages_size(alive_fit_nodes, args['size'])
 
         # choose any alive fit ss node
-        picked_ss = storage_servers_db[random.randint(0, len(storage_servers_db) - 1)]
+        picked_ss = alive_fit_nodes[random.randint(0, len(alive_fit_nodes) - 1)]
 
         # get list of ss to get replicas
         ss_replicas_list = NSUtils.get_ss_for_replicas(picked_ss, alive_fit_nodes)
@@ -325,6 +325,7 @@ class NamingServerCommands:
         return {'status': 'OK'}
 
     def do_delete_directory(self, args):
+        # TODO check for deleting root directory
         dir_data = NSUtils.get_entry_from_db("DFS", "Directories",
                                              {'directory_name': NSUtils.get_full_path(args['directory_name'])})
         if dir_data == 0: return {'status': 'Failed, directory does not exist'}
@@ -383,7 +384,6 @@ class NamingServerCommands:
         return db.get_db_snapshot(naming_server_db + storage_servers_db)
 
     def do_heart_signal(self, args):
-        # TODO check here for SS storages consistency
-        # print("Got heartbeat from {}".format(args['ss']))
-        # log.info("Got heartbeat from {}".format(args['ss']))
+
         db.update_ss_life_status(args['ss'])
+        NSUtils.check_ss_consistency(args['ss'])
