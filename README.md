@@ -62,7 +62,7 @@ services:
     ports:
       - 8800:8800
 ```
-For each Storage server use different HOSTNAME.  
+For each Storage server use different *HOSTNAME*.  
 
 Naming and Storage servers should be launched on distinct machines and located in the subnet
 for communication purposes.
