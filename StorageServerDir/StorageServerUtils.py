@@ -8,6 +8,11 @@ from time import sleep
 
 dir = "/usr/src/app/data/"
 block_size = 1024
+import urllib.request
+public_ip = urllib.request.urlopen("http://169.254.169.254/latest/meta-data/public-ipv4").read().decode('utf-8')
+local_ip = urllib.request.urlopen("http://169.254.169.254/latest/meta-data/local-ipv4").read().decode('utf-8')
+print(public_ip)
+print(local_ip)
 
 
 class StorageServerUtils:
@@ -98,7 +103,7 @@ class StorageServerUtils:
     def send_heart_signal(self, name_server_hostname):
         ss_host_name = os.getenv('HOSTNAME').upper()
         # generate message
-        message = {"command": "heart_signal", "ss": ss_host_name}
+        message = {"command": "heart_signal", "ss": ss_host_name, "local_ip": local_ip, "public_ip": public_ip}
 
         while True:
             try:
@@ -106,13 +111,14 @@ class StorageServerUtils:
                 sock.connect((name_server_hostname, 8800))
                 data = pickle.dumps(message)
                 sock.sendall(data)
-                log.info('Sent heart signal from {}'.format(ss_host_name))
+                # log.info('Sent heart signal from {}'.format(ss_host_name))
                 sock.close()
             except Exception as e:
                 print(e)
             sleep(5)
 
     def send_message(self, host_name, message):
+        print(host_name)
         sock = socket(AF_INET, SOCK_STREAM)
         sock.connect((host_name, 8800))
         data = pickle.dumps(message)

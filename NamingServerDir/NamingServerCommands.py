@@ -12,6 +12,9 @@ log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSC] 
 # TODO move it to some config file
 naming_server_db = ["DFS"]
 storage_servers_db = ["SS1", "SS2", "SS3"]
+local_public_ss_ips = {}
+ss_public_ips = {}
+ss_local_ips = {}
 storage_size = 800000000  # 100mgbytes
 block_size = 1024
 
@@ -45,7 +48,7 @@ class NamingServerCommands:
         # remove data from SS
         for ss in alive_nodes:
             message = {"command": "init"}
-            response = NSUtils.send_message(ss, message)
+            response = NSUtils.send_message(ss_local_ips[ss], message)
             log.info("Init response of {}: {}".format(ss, response))
             NSUtils.insert_dirs_into_db(ss, ["/usr/src/app/data/"])
         return {"status": "OK", "size_bits": storage_size}
@@ -65,6 +68,7 @@ class NamingServerCommands:
 
         # get list of alive nodes
         alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+        print('ALIVE', alive_nodes)
         # choose alive SS
         picked_ss = random.randint(0, len(alive_nodes) - 1)
 
@@ -76,9 +80,13 @@ class NamingServerCommands:
 
         # get list of ss to get replicas
         ss_replicas_list = NSUtils.get_ss_for_replicas(alive_nodes[picked_ss], alive_nodes)
+        ss_replicas_list_ips = []
+        for ss in ss_replicas_list:
+            ss_replicas_list_ips.append(ss_local_ips[ss])
 
-        message = {"command": "create_file", "file_name": args["file_name"], "replicas": ss_replicas_list}
-        NSUtils.send_message(alive_nodes[picked_ss], message)
+
+        message = {"command": "create_file", "file_name": args["file_name"], "replicas": ss_replicas_list_ips}
+        NSUtils.send_message(ss_local_ips[alive_nodes[picked_ss]], message)
 
         return {"status": "OK"}
 
@@ -97,7 +105,7 @@ class NamingServerCommands:
         # get file size
         file_size = NSUtils.get_file_size(args['file_name'])
 
-        return {'status': 'OK', 'ss': picked_ss, 'file_size': file_size}
+        return {'status': 'OK', 'ss': ss_public_ips[picked_ss], 'file_size': file_size}
 
     def do_write_file(self, args):
         print("Write file {}".format(NSUtils.get_full_path(args["file_name"])))
@@ -137,9 +145,12 @@ class NamingServerCommands:
 
         # get list of ss to get replicas
         ss_replicas_list = NSUtils.get_ss_for_replicas(picked_ss, alive_fit_nodes)
+        ss_replicas_list_ips = []
+        for ss in ss_replicas_list:
+            ss_replicas_list_ips.append(ss_local_ips[ss])
 
         # generate message for client
-        message = {"status": "OK", "ss": picked_ss, "replicas": ss_replicas_list}
+        message = {"status": "OK", "ss": ss_public_ips[picked_ss], "replicas": ss_replicas_list_ips}
 
         return message
 
@@ -169,7 +180,7 @@ class NamingServerCommands:
         # send commands to ss
         message = {"command": "delete_file", "file_name": NSUtils.get_full_path(args["file_name"])}
         for ss in alive_nodes:
-            NSUtils.send_message(ss, message)
+            NSUtils.send_message(ss_local_ips[ss], message)
 
         return {'status': 'OK'}
 
@@ -234,7 +245,7 @@ class NamingServerCommands:
         message = {"command": "copy_file", "file_name": file_data["file_name"],
                    'directory': NSUtils.get_full_path(args["directory"])}
         for ss in alive_nodes:
-            NSUtils.send_message(ss, message)
+            NSUtils.send_message(ss_local_ips[ss], message)
 
         return {'status': 'OK'}
 
@@ -288,7 +299,7 @@ class NamingServerCommands:
         message = {"command": "move_file", "file_name": file_data["file_name"],
                    'directory': NSUtils.get_full_path(args["directory"])}
         for ss in alive_nodes:
-            NSUtils.send_message(ss, message)
+            NSUtils.send_message(ss_local_ips[ss], message)
 
         return {'status': 'OK'}
 
@@ -318,7 +329,7 @@ class NamingServerCommands:
         # update file system of alive nodes
         for ss in alive_nodes:
             message = {"command": "make_directory", 'directory_name': NSUtils.get_full_path(args['directory_name'])}
-            response = NSUtils.send_message(ss, message)
+            response = NSUtils.send_message(ss_local_ips[ss], message)
             log.info("Init response of {}: {}".format(ss, response))
             NSUtils.insert_dirs_into_db(ss, [NSUtils.get_full_path(args['directory_name'])])
 
@@ -348,7 +359,7 @@ class NamingServerCommands:
                                              {'directory_name': NSUtils.get_full_path(args['directory_name'])})
                 message = {"command": "delete_directory",
                            'directory_name': NSUtils.get_full_path(args['directory_name'])}
-                response = NSUtils.send_message(ss, message)
+                response = NSUtils.send_message(ss_local_ips[ss], message)
 
         else:
             # send message to client
@@ -374,7 +385,7 @@ class NamingServerCommands:
                                                                 NSUtils.get_full_path(args['directory_name']))
                     message = {"command": "delete_directory",
                                'directory_name': NSUtils.get_full_path(args['directory_name'])}
-                    response = NSUtils.send_message(ss, message)
+                    response = NSUtils.send_message(ss_local_ips[ss], message)
 
         return 0
 
@@ -384,6 +395,9 @@ class NamingServerCommands:
         return db.get_db_snapshot(naming_server_db + storage_servers_db)
 
     def do_heart_signal(self, args):
-
+        local_public_ss_ips[args['local_ip']] = args['public_ip']
+        ss_local_ips[args['ss']] = args['local_ip']
+        ss_public_ips[args['ss']] = args['public_ip']
         db.update_ss_life_status(args['ss'])
-        NSUtils.check_ss_consistency(args['ss'])
+        alive_nodes = NSUtils.get_alive_ss(storage_servers_db)
+        NSUtils.check_ss_consistency(args['ss'], alive_nodes, ss_local_ips)

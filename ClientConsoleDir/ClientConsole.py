@@ -12,7 +12,7 @@ log.basicConfig(filename="client.log", format='[CCO] %(asctime)s - %(levelname)s
 
 ###
 menu = ConsoleMenu()
-client_commander = ClientCommands()
+
 block_size = 1024
 
 
@@ -66,6 +66,7 @@ def initialization():
 def main():
     print("Begin initialization...")
     log.info("Begin initialization...")
+    client_commander = ClientCommands(input())
     initialization()
     print("Initialized successfully")
     log.info("Initialized successfully")

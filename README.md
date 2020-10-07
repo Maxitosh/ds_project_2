@@ -8,18 +8,69 @@ The Distributed File System (DFS) is a file system with data stored on a server.
 
 ## Installation
 
-Use the docker engine [docker](https://www.docker.com) and [docker hub](https://hub.docker.com/) to install DFS.
-
+Use the docker engine [docker](https://www.docker.com) and [docker hub](https://hub.docker.com/) to install DFS.   
+Installation base for each instance:
 ```bash
-pip install docker
-docker pull [OPTIONS] NAME[:TAG|@DIGEST]
-docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+sudo apt-get update
+sudo snap install docker
 ```
+Installation of Naming server [maxitosh/namingserver](https://hub.docker.com/repository/docker/maxitosh/namingserver):
+```bash
+docker pull maxitosh/namingserver
+docker-compose up
+```
+docker-compose.yml for Naming server.  
+```dockerfile
+version: "3.8"
+services:
+  namingserver:
+    container_name: namingserver
+    image: maxitosh/namingserver:latest
+    environment:
+      - "PYTHONUNBUFFERED=1"
+    command: ["python3", "NamingServer.py"]
+    ports:
+      - 8800:8800
+
+  mongodb:
+    image: mongo:latest
+    container_name: mongodb
+    ports:
+      - 27017:27017
+    volumes:
+      - ./MongoDB/data:/data/db/
+      - ./MongoDB/:/usr/src/app/
+```
+Installation of Naming server [maxitosh/storageserver](https://hub.docker.com/repository/docker/maxitosh/storageserver):
+```bash
+docker pull maxitosh/storageserver
+docker-compose up
+```
+docker-compose.yml for Storage server.
+```dockerfile
+version: "3.8"
+services:
+  namingserver:
+    container_name: storageserver
+    image: maxitosh/storageserver:latest
+    environment:
+      - "PYTHONUNBUFFERED=1"
+      - "HOSTNAME=ss1"
+    entrypoint: ["python3", "StorageServer.py"]
+    volumes:
+      - ./data/:/usr/src/app/data/
+    ports:
+      - 8800:8800
+```
+For each Storage server use different HOSTNAME.  
 
 Naming and Storage servers should be launched on distinct machines and located in the subnet
 for communication purposes.
 
 ## Usage
+Enter Naming server ip:   
+![Client Console](images/login.png)
+
 ![Client Console](images/client_console.png)
 
 Available commands in client console.  

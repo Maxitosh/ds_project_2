@@ -65,7 +65,7 @@ class Server(Thread):
 def main():
     print("starting...")
     log.info("starting...")
-    SSUtils.init_heart_beat_system("namingserver")
+    SSUtils.init_heart_beat_system("10.0.15.10")
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     next_user = 1

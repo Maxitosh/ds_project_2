@@ -2,14 +2,15 @@ version: "3.8"
 services:
   namingserver:
     container_name: namingserver
-    build:
-      context: .
-      dockerfile: NamingServerDockerfile
+#    build:
+#      context: .
+#      dockerfile: NamingServerDockerfile
+    image: maxitosh/namingserver:latest
     environment:
       - "PYTHONUNBUFFERED=1"
     entrypoint: ["python3", "NamingServer.py"]
-    volumes:
-    - .:/usr/src/app/
+#    volumes:
+#    - .:/usr/src/app/
     ports:
       - 8800:8800
 
@@ -26,7 +27,7 @@ services:
       - ./MongoDB/init-mongo.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
       - ./MongoDB/data:/data/db/
       - ./MongoDB/:/usr/src/app/
-networks:
-  default:
-    external:
-      name: alpine-net
+#networks:
+#  default:
+#    external:
+#      name: alpine-net

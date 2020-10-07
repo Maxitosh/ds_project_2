@@ -11,7 +11,7 @@ SSUtils = StorageServerUtils()
 class StorageServerCommands:
 
     def __init__(self):
-        host_name = '[' + os.getenv('HOSTNAME').upper() + '] '
+        host_name = ""#'[' + os.getenv('HOSTNAME').upper() + '] '
         log.basicConfig(force=True, filename="ss.log",
                         format=('%(asctime)s - %(levelname)s - ' + host_name + '%(message)s'),
                         level=log.DEBUG)

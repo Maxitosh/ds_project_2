@@ -11,7 +11,6 @@ log.basicConfig(filename="dfs.log", format='%(asctime)s - %(levelname)s - [NSU] 
                 force=True)
 
 block_size = 1024
-storage_servers_db = ["SS1", "SS2", "SS3"]
 
 
 class NamingServerUtils:
@@ -77,7 +76,6 @@ class NamingServerUtils:
         for ss in ss_list:
             try:
                 if (datetime.now() - db.ss_life[ss]).seconds < 10:
-                    print("Node {} is alive".format(ss))
                     alive_nodes.append(ss)
             except:
                 pass
@@ -253,7 +251,7 @@ class NamingServerUtils:
                 pass
         return dirs
 
-    def check_ss_consistency(self, ss_name):
+    def check_ss_consistency(self, ss_name, alive_nodes, ss_local_ips):
         dfs_files = self.extract_files_data_from_db_entries(db.get_items('DFS', "Files"))
         dfs_dirs = self.extract_directories_data_from_db_entries(db.get_items('DFS', "Directories"))
 
@@ -298,21 +296,17 @@ class NamingServerUtils:
                 else:
                     commands_list_for_alive_ss.append(
                         {"command": "send_file_replica", "file_name": dfs_file["file_name"].replace(dir, ''),
-                         "replicas": [ss_name]})
+                         "replicas": [ss_local_ips[ss_name]]})
                     total_taken_space += dfs_file['size']
                     self.insert_file_into_db(ss_name, {"file_name": dfs_file["file_name"].replace(dir, ''),
                                                        'size': self.get_file_size(
                                                            dfs_file["file_name"].replace(dir, ''))})
         # get alive nodes
         try:
-            # TODO cnahnge to consistency in alive function
-            alive_nodes = self.get_alive_ss(storage_servers_db)
-            print(alive_nodes)
-            print(self.get_ss_for_replicas(ss_name, alive_nodes))
             replica_sender_node = self.get_ss_for_replicas(ss_name, alive_nodes)[0]
         except Exception as e:
-            print(e)
-            log.error(e)
+            # print(e)
+            # log.error(e)
             return
 
         if len(commands_list) == 0 and len(commands_list_for_alive_ss) == 0:
@@ -322,10 +316,10 @@ class NamingServerUtils:
         self.update_storages_size([ss_name], (total_taken_space-total_free_space))
 
         for command in commands_list:
-            self.send_message(ss_name, command)
+            self.send_message(ss_local_ips[ss_name], command)
 
         for replica_command in commands_list_for_alive_ss:
-            self.send_message(replica_sender_node, replica_command)
+            self.send_message(ss_local_ips[replica_sender_node], replica_command)
 
         print(commands_list)
         print('-------------------------------')

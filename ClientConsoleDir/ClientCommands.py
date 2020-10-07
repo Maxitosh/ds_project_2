@@ -10,7 +10,6 @@ from ClientUtils import ClientUtils
 log.basicConfig(filename="client.log", format='[CCM] %(asctime)s - %(levelname)s - %(message)s',
                 level=log.DEBUG, force=True)
 
-ns_host = "namingserver"
 port = 8800
 block_size = 1024
 
@@ -18,6 +17,10 @@ CUtils = ClientUtils()
 
 
 class ClientCommands:
+    ns_host = ""
+
+    def __init__(self, ip):
+        self.ns_host = ip
 
     def dispatch_command(self, command):
         if command == "Initialize":
@@ -50,7 +53,7 @@ class ClientCommands:
         log.info("Starting initialization of DFS")
 
         message = {"command": "init"}
-        received = CUtils.send_message(ns_host, message)
+        received = CUtils.send_message(self.ns_host, message)
         print("{}".format(received))
         log.info("{}".format(received))
 
@@ -59,7 +62,7 @@ class ClientCommands:
         filename = input()
 
         message = {"command": "create_file", "file_name": filename, "size": 0}
-        received = CUtils.send_message(ns_host, message)
+        received = CUtils.send_message(self.ns_host, message)
         print("{}".format(received))
         log.info("{}".format(received))
 
@@ -68,7 +71,7 @@ class ClientCommands:
         log.info("Enter DFS file name and file name after downloading...")
         dfs_file_name, file_name = CUtils.get_filename_and_dfs_filename()  # inverse here
         message = {"command": "read_file", "file_name": dfs_file_name}
-        received = CUtils.send_message(ns_host, message)
+        received = CUtils.send_message(self.ns_host, message)
 
         if not received['status'] == 'OK':
             print(received)
@@ -94,7 +97,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'write_file', 'file_name': dfs_file_name, 'size': file_size}
-        response_code = CUtils.send_message(ns_host, message)
+        response_code = CUtils.send_message(self.ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return
@@ -121,7 +124,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'delete_file', 'file_name': file_name}
-        response_code = CUtils.send_message(ns_host, message)
+        response_code = CUtils.send_message(self.ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return
@@ -135,7 +138,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'info_file', 'file_name': dfs_file_name}
-        response_code = CUtils.send_message(ns_host, message)
+        response_code = CUtils.send_message(self.ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return
@@ -152,7 +155,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'copy_file', 'file_name': dfs_file_name, 'directory': directory}
-        response_code = CUtils.send_message(ns_host, message)
+        response_code = CUtils.send_message(self.ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return
@@ -168,7 +171,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'move_file', 'file_name': dfs_file_name, 'directory': directory}
-        response_code = CUtils.send_message(ns_host, message)
+        response_code = CUtils.send_message(self.ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return
@@ -182,7 +185,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'read_directory', 'directory_name': directory_name}
-        response_code = CUtils.send_message(ns_host, message)
+        response_code = CUtils.send_message(self.ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return
@@ -197,7 +200,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'make_directory', 'directory_name': directory_name}
-        response_code = CUtils.send_message(ns_host, message)
+        response_code = CUtils.send_message(self.ns_host, message)
         if not response_code['status'] == 'OK':
             print(response_code['status'])
             return
@@ -211,7 +214,7 @@ class ClientCommands:
 
         # generate message for NS
         message = {'command': 'delete_directory', 'directory_name': directory_name}
-        response_code = CUtils.send_delete_dir(ns_host, message)
+        response_code = CUtils.send_delete_dir(self.ns_host, message)
 
         if not response_code['status'] == 'OK':
             print(response_code['status'])
@@ -224,7 +227,8 @@ class ClientCommands:
         log.info("Getting info about NamingServer ...")
 
         message = {"command": "db_snapshot"}
-        received = CUtils.send_message(ns_host, message)
+        print("Host", self.ns_host)
+        received = CUtils.send_message(self.ns_host, message)
 
         for db_name, db_data in received.items():
             print(db_name)
