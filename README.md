@@ -41,7 +41,7 @@ services:
       - ./MongoDB/data:/data/db/
       - ./MongoDB/:/usr/src/app/
 ```
-Installation of Naming server [maxitosh/storageserver](https://hub.docker.com/repository/docker/maxitosh/storageserver):
+Installation of Storage server [maxitosh/storageserver](https://hub.docker.com/repository/docker/maxitosh/storageserver):
 ```bash
 docker pull maxitosh/storageserver
 docker-compose up
@@ -66,6 +66,8 @@ For each Storage server use different *HOSTNAME*.
 
 Naming and Storage servers should be launched on distinct machines and located in the subnet
 for communication purposes.
+
+Installation of Cliet console [maxitosh/clientconsole](https://hub.docker.com/repository/docker/maxitosh/clientconsole)
 
 ## Usage
 Enter Naming server ip:   
