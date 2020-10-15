@@ -67,7 +67,7 @@ For each Storage server use different *HOSTNAME*.
 Naming and Storage servers should be launched on distinct machines and located in the subnet
 for communication purposes.
 
-Installation of Cliet console [maxitosh/clientconsole](https://hub.docker.com/repository/docker/maxitosh/clientconsole)
+Installation of Client console [maxitosh/clientconsole](https://hub.docker.com/repository/docker/maxitosh/clientconsole)
 
 ## Usage
 Enter Naming server ip:   
